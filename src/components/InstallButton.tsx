@@ -203,6 +203,8 @@ export function InstallButton() {
           <p className="text-muted-foreground text-[11px] mt-3 border-t border-border/50 pt-2">
             Note: this only works in Safari, not Chrome or in-app browsers.
           </p>
+          </>
+          )}
         </PopoverContent>
       </Popover>
     );
