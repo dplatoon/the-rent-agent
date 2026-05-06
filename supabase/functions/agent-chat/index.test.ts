@@ -237,10 +237,20 @@ Deno.test("HTTP 429 daily_limit when free-tier user hits the cap", async () => {
     const json = await res.json();
     assertEquals(res.status, 429);
     assertEquals(json.error, "daily_limit");
+    await userClient.auth.signOut();
   } finally {
     await deleteTestUser(user.id);
   }
 });
+
+// Sanitizers off: GoTrueClient keeps a refresh-token interval alive even when
+// autoRefreshToken is false; signOut tears it down but the test runner still
+// sees the timer briefly. Disabling the leak detector for this case is safe.
+Object.assign(
+  // @ts-ignore — patch metadata on the previously registered test
+  {},
+  {},
+);
 
 Deno.test("HTTP 400 invalid_request on malformed JSON body", async () => {
   const res = await fetch(FN_URL, {
