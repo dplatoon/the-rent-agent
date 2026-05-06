@@ -21,6 +21,16 @@ function detectIOS() {
   return /iPhone|iPod/.test(ua) || isIPad;
 }
 
+function detectIOSInAppBrowser() {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  // Safari on iOS contains "Safari" and "Version/". In-app browsers (Chrome iOS = CriOS,
+  // Firefox iOS = FxiOS, Edge iOS = EdgiOS, Instagram, FB, Line, etc.) do not.
+  if (/CriOS|FxiOS|EdgiOS|OPiOS|GSA\//i.test(ua)) return true;
+  if (/FBAN|FBAV|Instagram|Line\/|Snapchat|TikTok|Pinterest/i.test(ua)) return true;
+  return false;
+}
+
 export function InstallButton() {
   const [deferred, setDeferred] = useState<BIPEvent | null>(null);
   const [installed, setInstalled] = useState(false);
