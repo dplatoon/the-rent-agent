@@ -29,7 +29,7 @@ export function trackPwaEvent(event: PwaEvent, meta?: Record<string, unknown>) {
       event,
       platform: detectPlatform(),
       user_agent: navigator.userAgent.slice(0, 500),
-      meta: meta ?? null,
+      meta: (meta ?? null) as never,
     });
   } catch {
     // Telemetry must never break the UX
