@@ -103,7 +103,7 @@ export function looksLikeRawUA(value: string): boolean {
   return FORBIDDEN_UA_MARKERS.some((m) => value.includes(m));
 }
 
-function looksLikeFullURL(value: string): boolean {
+export function looksLikeFullURL(value: string): boolean {
   // Allow bare origins (scheme + host, optional port). Anything with a path,
   // query, or fragment is treated as a full referrer and scrubbed.
   try {
