@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchAgent } from "@/lib/agents";
 import { getAgentAvatar } from "@/lib/agent-avatars";
+import { fetchListings, type Listing } from "@/lib/listings";
+import { ListingCard } from "@/components/ListingCard";
 import type { Database } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +27,12 @@ function AgentChat() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
+  const [agentListings, setAgentListings] = useState<Listing[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    fetchListings({ agent_id: state, limit: 4 }).then(setAgentListings).catch(() => {});
+  }, [state]);
 
   useEffect(() => {
     fetchAgent(state).then((a) => {
@@ -213,6 +220,21 @@ function AgentChat() {
         <p className="mt-2 text-xs text-muted-foreground text-center">
           <Link to="/auth" className="text-primary underline">Sign in</Link> to start chatting with {agent.name}.
         </p>
+      )}
+
+      {agentListings.length > 0 && (
+        <section className="mt-12">
+          <div className="flex items-end justify-between mb-4">
+            <div>
+              <div className="font-mono text-[10px] tracking-[0.25em] text-primary mb-1">// {agent.name.toUpperCase()}'S PICKS</div>
+              <h2 className="font-display text-2xl font-bold">Hand-picked in {agent.state}</h2>
+            </div>
+            <Link to="/listings" className="text-sm text-primary hover:underline">All listings →</Link>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-4">
+            {agentListings.map((l) => <ListingCard key={l.id} listing={l} />)}
+          </div>
+        </section>
       )}
     </main>
   );

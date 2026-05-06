@@ -9,14 +9,21 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SavedRouteImport } from './routes/saved'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as MapRouteImport } from './routes/map'
+import { Route as ListingsRouteImport } from './routes/listings'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AgentStateRouteImport } from './routes/agent.$state'
 
+const SavedRoute = SavedRouteImport.update({
+  id: '/saved',
+  path: '/saved',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
@@ -25,6 +32,11 @@ const PricingRoute = PricingRouteImport.update({
 const MapRoute = MapRouteImport.update({
   id: '/map',
   path: '/map',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ListingsRoute = ListingsRouteImport.update({
+  id: '/listings',
+  path: '/listings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -58,8 +70,10 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/listings': typeof ListingsRoute
   '/map': typeof MapRoute
   '/pricing': typeof PricingRoute
+  '/saved': typeof SavedRoute
   '/agent/$state': typeof AgentStateRoute
 }
 export interface FileRoutesByTo {
@@ -67,8 +81,10 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/listings': typeof ListingsRoute
   '/map': typeof MapRoute
   '/pricing': typeof PricingRoute
+  '/saved': typeof SavedRoute
   '/agent/$state': typeof AgentStateRoute
 }
 export interface FileRoutesById {
@@ -77,8 +93,10 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/listings': typeof ListingsRoute
   '/map': typeof MapRoute
   '/pricing': typeof PricingRoute
+  '/saved': typeof SavedRoute
   '/agent/$state': typeof AgentStateRoute
 }
 export interface FileRouteTypes {
@@ -88,8 +106,10 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/dashboard'
+    | '/listings'
     | '/map'
     | '/pricing'
+    | '/saved'
     | '/agent/$state'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -97,8 +117,10 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/dashboard'
+    | '/listings'
     | '/map'
     | '/pricing'
+    | '/saved'
     | '/agent/$state'
   id:
     | '__root__'
@@ -106,8 +128,10 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/dashboard'
+    | '/listings'
     | '/map'
     | '/pricing'
+    | '/saved'
     | '/agent/$state'
   fileRoutesById: FileRoutesById
 }
@@ -116,13 +140,22 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRoute
   DashboardRoute: typeof DashboardRoute
+  ListingsRoute: typeof ListingsRoute
   MapRoute: typeof MapRoute
   PricingRoute: typeof PricingRoute
+  SavedRoute: typeof SavedRoute
   AgentStateRoute: typeof AgentStateRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/saved': {
+      id: '/saved'
+      path: '/saved'
+      fullPath: '/saved'
+      preLoaderRoute: typeof SavedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pricing': {
       id: '/pricing'
       path: '/pricing'
@@ -135,6 +168,13 @@ declare module '@tanstack/react-router' {
       path: '/map'
       fullPath: '/map'
       preLoaderRoute: typeof MapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/listings': {
+      id: '/listings'
+      path: '/listings'
+      fullPath: '/listings'
+      preLoaderRoute: typeof ListingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -180,8 +220,10 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AuthRoute: AuthRoute,
   DashboardRoute: DashboardRoute,
+  ListingsRoute: ListingsRoute,
   MapRoute: MapRoute,
   PricingRoute: PricingRoute,
+  SavedRoute: SavedRoute,
   AgentStateRoute: AgentStateRoute,
 }
 export const routeTree = rootRouteImport
