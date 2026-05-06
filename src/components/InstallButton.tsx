@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Download, CheckCircle2, Share, Plus } from "lucide-react";
+import { Download, CheckCircle2, Share, Plus, X } from "lucide-react";
 import {
   Popover,
   PopoverContent,
