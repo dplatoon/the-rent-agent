@@ -217,7 +217,7 @@ export function InstallButton() {
 
   if (supported === false) {
     return (
-      <Popover>
+      <Popover onOpenChange={(o) => { if (o) trackPwaEvent("unsupported_help_opened"); }}>
         <PopoverTrigger asChild>
           <Button size="sm" variant="ghost" className="gap-1.5 text-muted-foreground">
             <Download className="h-3.5 w-3.5" />
