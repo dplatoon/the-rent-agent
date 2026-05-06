@@ -36,7 +36,7 @@ function MapPage() {
           <a
             key={a.id}
             href={`/agent/${a.id.toLowerCase()}`}
-            className="rounded-xl border border-border bg-card p-4 hover:border-primary/40 transition"
+            className="rounded-xl border border-border bg-card p-4 hover:border-primary/40 transition avatar-3d-wrap"
           >
             <div className="flex items-center gap-3">
               <div className="w-14 h-14 rounded-xl overflow-hidden"
