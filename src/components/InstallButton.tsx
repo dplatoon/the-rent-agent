@@ -21,6 +21,16 @@ function detectIOS() {
   return /iPhone|iPod/.test(ua) || isIPad;
 }
 
+function detectIOSInAppBrowser() {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  // Safari on iOS contains "Safari" and "Version/". In-app browsers (Chrome iOS = CriOS,
+  // Firefox iOS = FxiOS, Edge iOS = EdgiOS, Instagram, FB, Line, etc.) do not.
+  if (/CriOS|FxiOS|EdgiOS|OPiOS|GSA\//i.test(ua)) return true;
+  if (/FBAN|FBAV|Instagram|Line\/|Snapchat|TikTok|Pinterest/i.test(ua)) return true;
+  return false;
+}
+
 export function InstallButton() {
   const [deferred, setDeferred] = useState<BIPEvent | null>(null);
   const [installed, setInstalled] = useState(false);
@@ -60,9 +70,15 @@ export function InstallButton() {
         localStorage.setItem("pwa:installedAt", String(Date.now()));
         localStorage.removeItem("pwa:pillDismissedAt");
       } catch {}
+      // Auto-dismiss fallback after 5s (user can still dismiss earlier).
+      window.setTimeout(() => setJustInstalled(false), 5000);
+    };
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "pwa:pillDismissedAt") setJustInstalled(false);
     };
     window.addEventListener("beforeinstallprompt", onPrompt);
     window.addEventListener("appinstalled", onInstalled);
+    window.addEventListener("storage", onStorage);
 
     const t = window.setTimeout(() => {
       setSupported((prev) => (prev === null ? false : prev));
@@ -71,6 +87,7 @@ export function InstallButton() {
     return () => {
       window.removeEventListener("beforeinstallprompt", onPrompt);
       window.removeEventListener("appinstalled", onInstalled);
+      window.removeEventListener("storage", onStorage);
       window.clearTimeout(t);
     };
   }, []);
@@ -85,7 +102,7 @@ export function InstallButton() {
   if (installed) {
     if (justInstalled) {
       return (
-        <span className="flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 pl-2.5 pr-1 py-1 text-xs font-medium text-primary animate-in fade-in slide-in-from-top-1 duration-300">
+        <span role="status" aria-live="polite" className="flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 pl-2.5 pr-1 py-1 text-xs font-medium text-primary animate-in fade-in slide-in-from-top-1 duration-300">
           <CheckCircle2 className="h-3.5 w-3.5" />
           Installed!
           <button
@@ -126,16 +143,38 @@ export function InstallButton() {
   }
 
   if (isIOS) {
+    const inApp = detectIOSInAppBrowser();
     return (
       <Popover>
         <PopoverTrigger asChild>
           <Button size="sm" variant="outline" className="gap-1.5">
             <Share className="h-3.5 w-3.5" />
-            Install on iOS
+            {inApp ? "Open in Safari" : "Install on iOS"}
           </Button>
         </PopoverTrigger>
         <PopoverContent align="end" className="w-72 text-sm">
-          <div className="font-semibold mb-2">Add to Home Screen</div>
+          <div className="font-semibold mb-2">
+            {inApp ? "Open this page in Safari" : "Add to Home Screen"}
+          </div>
+          {inApp ? (
+            <>
+              <p className="text-muted-foreground text-xs mb-3">
+                You're in an in-app browser, which can't install web apps.
+                Tap the <Share className="inline h-3.5 w-3.5 mx-0.5 align-text-bottom" />
+                menu and choose <strong>Open in Safari</strong>, then use Share → Add to Home Screen.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard?.writeText(window.location.href);
+                }}
+                className="w-full rounded-md border border-border/60 bg-muted/30 hover:bg-muted/50 transition px-3 py-2 text-xs font-medium"
+              >
+                Copy link to open in Safari
+              </button>
+            </>
+          ) : (
+          <>
           <p className="text-muted-foreground text-xs mb-3">
             iOS doesn't allow one-tap install. Use Safari's Share menu:
           </p>
@@ -164,6 +203,8 @@ export function InstallButton() {
           <p className="text-muted-foreground text-[11px] mt-3 border-t border-border/50 pt-2">
             Note: this only works in Safari, not Chrome or in-app browsers.
           </p>
+          </>
+          )}
         </PopoverContent>
       </Popover>
     );
