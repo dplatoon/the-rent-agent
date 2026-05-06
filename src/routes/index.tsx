@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { AgentMap } from "@/components/AgentMap";
 import { fetchAgents } from "@/lib/agents";
+import { getAgentAvatar } from "@/lib/agent-avatars";
 import type { Database } from "@/integrations/supabase/types";
 import { ArrowRight, Sparkles, Zap, Shield } from "lucide-react";
 
