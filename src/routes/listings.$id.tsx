@@ -13,7 +13,7 @@ import {
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/listings/$id")({
-  head: ({ loaderData }) => {
+  head: ({ loaderData }: { loaderData?: { listing: Listing } }) => {
     const l = loaderData?.listing;
     const title = l ? `${l.title} — ${l.city}, ${l.state}` : "Listing — RentAgent.io";
     const desc = l ? `${l.bedrooms || "Studio"} bed · ${l.bathrooms} bath · ${formatPrice(l.price_monthly)} in ${l.neighborhood}, ${l.city}.` : "Rental listing detail.";
@@ -145,7 +145,7 @@ function ListingDetail() {
             <div className="mt-8">
               <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-3">// Amenities</div>
               <ul className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {listing.amenities.map((a) => (
+                {listing.amenities.map((a: string) => (
                   <li key={a} className="inline-flex items-center gap-2 text-sm">
                     <Check className="h-4 w-4 text-mint" /> {a}
                   </li>

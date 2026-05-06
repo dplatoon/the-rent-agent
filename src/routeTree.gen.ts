@@ -17,6 +17,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ListingsIdRouteImport } from './routes/listings.$id'
 import { Route as AgentStateRouteImport } from './routes/agent.$state'
 
 const SavedRoute = SavedRouteImport.update({
@@ -59,6 +60,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ListingsIdRoute = ListingsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ListingsRoute,
+} as any)
 const AgentStateRoute = AgentStateRouteImport.update({
   id: '/agent/$state',
   path: '/agent/$state',
@@ -70,22 +76,24 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
-  '/listings': typeof ListingsRoute
+  '/listings': typeof ListingsRouteWithChildren
   '/map': typeof MapRoute
   '/pricing': typeof PricingRoute
   '/saved': typeof SavedRoute
   '/agent/$state': typeof AgentStateRoute
+  '/listings/$id': typeof ListingsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
-  '/listings': typeof ListingsRoute
+  '/listings': typeof ListingsRouteWithChildren
   '/map': typeof MapRoute
   '/pricing': typeof PricingRoute
   '/saved': typeof SavedRoute
   '/agent/$state': typeof AgentStateRoute
+  '/listings/$id': typeof ListingsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -93,11 +101,12 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
-  '/listings': typeof ListingsRoute
+  '/listings': typeof ListingsRouteWithChildren
   '/map': typeof MapRoute
   '/pricing': typeof PricingRoute
   '/saved': typeof SavedRoute
   '/agent/$state': typeof AgentStateRoute
+  '/listings/$id': typeof ListingsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -111,6 +120,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/saved'
     | '/agent/$state'
+    | '/listings/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -122,6 +132,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/saved'
     | '/agent/$state'
+    | '/listings/$id'
   id:
     | '__root__'
     | '/'
@@ -133,6 +144,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/saved'
     | '/agent/$state'
+    | '/listings/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -140,7 +152,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRoute
   DashboardRoute: typeof DashboardRoute
-  ListingsRoute: typeof ListingsRoute
+  ListingsRoute: typeof ListingsRouteWithChildren
   MapRoute: typeof MapRoute
   PricingRoute: typeof PricingRoute
   SavedRoute: typeof SavedRoute
@@ -205,6 +217,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/listings/$id': {
+      id: '/listings/$id'
+      path: '/$id'
+      fullPath: '/listings/$id'
+      preLoaderRoute: typeof ListingsIdRouteImport
+      parentRoute: typeof ListingsRoute
+    }
     '/agent/$state': {
       id: '/agent/$state'
       path: '/agent/$state'
@@ -215,12 +234,24 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ListingsRouteChildren {
+  ListingsIdRoute: typeof ListingsIdRoute
+}
+
+const ListingsRouteChildren: ListingsRouteChildren = {
+  ListingsIdRoute: ListingsIdRoute,
+}
+
+const ListingsRouteWithChildren = ListingsRoute._addFileChildren(
+  ListingsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AuthRoute: AuthRoute,
   DashboardRoute: DashboardRoute,
-  ListingsRoute: ListingsRoute,
+  ListingsRoute: ListingsRouteWithChildren,
   MapRoute: MapRoute,
   PricingRoute: PricingRoute,
   SavedRoute: SavedRoute,
