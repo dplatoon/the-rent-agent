@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useCompare } from "@/lib/compare-store";
 import { CompareDialog } from "./CompareDialog";
 import { Button } from "./ui/button";
