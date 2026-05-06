@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { InstallButton } from "@/components/InstallButton";
 
 export function SiteHeader() {
   const [authed, setAuthed] = useState(false);
@@ -32,6 +33,7 @@ export function SiteHeader() {
           <Link to="/about" className="hover:text-primary transition" activeProps={{ className: "text-primary" }}>About</Link>
         </nav>
         <div className="flex items-center gap-2">
+          <InstallButton />
           {authed ? (
             <>
               <Link to="/dashboard"><Button variant="ghost" size="sm">Dashboard</Button></Link>
