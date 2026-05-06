@@ -80,43 +80,33 @@ serve(async (req) => {
         allowed = !!rpcData[0].allowed;
         tier = rpcData[0].tier || "free";
       } else {
-        // Atomic fallback: reset window if stale, then conditional increment
-        const nowIso = new Date().toISOString();
-        await admin.rpc; // no-op
-        // Reset if window expired (idempotent, single statement)
+        // Fallback: reset stale window, then optimistic-concurrency increment
+        const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
         await admin.from("profiles")
-          .update({ daily_chat_count: 0, daily_chat_reset_at: nowIso })
+          .update({ daily_chat_count: 0, daily_chat_reset_at: new Date().toISOString() })
           .eq("id", user.id)
-          .lt("daily_chat_reset_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+          .lt("daily_chat_reset_at", dayAgo);
 
-        const { data: prof } = await admin.from("profiles").select("tier").eq("id", user.id).maybeSingle();
+        const { data: prof } = await admin.from("profiles")
+          .select("tier, daily_chat_count").eq("id", user.id).maybeSingle();
         if (!prof) return json({ error: "no_profile" }, 400, cors);
         tier = prof.tier || "free";
 
-        if (tier === "free") {
-          // Atomic conditional increment: only succeeds if under limit
-          const { data: updated } = await admin.from("profiles")
-            .update({ daily_chat_count: (await admin.rpc("pg_typeof", {})).data ?? undefined } as any)
-            .eq("id", user.id);
-          // Simpler: read-modify-write guarded by lt() filter on count
-          const { data: incRows, error: incErr } = await admin.from("profiles")
-            .update({ daily_chat_count: 999 }) // placeholder; replaced below
-            .eq("id", "__never__")
-            .select();
-          // The above placeholder pattern doesn't atomically increment; use raw via rpc-less path:
-          const { data: cur } = await admin.from("profiles").select("daily_chat_count").eq("id", user.id).maybeSingle();
-          const cnt = cur?.daily_chat_count ?? 0;
+        if (tier !== "free") {
+          allowed = true;
+        } else {
+          const cnt = prof.daily_chat_count ?? 0;
           if (cnt >= FREE_DAILY_LIMIT) {
             allowed = false;
           } else {
-            const { error: bumpErr } = await admin.from("profiles")
+            // Conditional update — fails (zero rows) if another request raced ahead
+            const { data: rows, error: bumpErr } = await admin.from("profiles")
               .update({ daily_chat_count: cnt + 1 })
               .eq("id", user.id)
-              .eq("daily_chat_count", cnt); // optimistic concurrency
-            allowed = !bumpErr;
+              .eq("daily_chat_count", cnt)
+              .select("id");
+            allowed = !bumpErr && !!rows && rows.length > 0;
           }
-        } else {
-          allowed = true;
         }
       }
     }
