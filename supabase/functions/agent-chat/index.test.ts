@@ -218,7 +218,7 @@ Deno.test("HTTP 429 daily_limit when free-tier user hits the cap", async () => {
 
     // Sign in as the user to obtain a real JWT.
     const userClient = createClient(SUPABASE_URL, ANON_KEY, {
-      auth: { persistSession: false },
+      auth: { persistSession: false, autoRefreshToken: false },
     });
     const { data: signIn, error: signInErr } =
       await userClient.auth.signInWithPassword({
