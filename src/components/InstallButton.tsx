@@ -24,6 +24,7 @@ function detectIOS() {
 export function InstallButton() {
   const [deferred, setDeferred] = useState<BIPEvent | null>(null);
   const [installed, setInstalled] = useState(false);
+  const [justInstalled, setJustInstalled] = useState(false);
   const [supported, setSupported] = useState<boolean | null>(null);
   const [isIOS, setIsIOS] = useState(false);
 
