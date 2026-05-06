@@ -84,28 +84,33 @@
   html, body { background: var(--color-background); color: var(--color-foreground); font-family: var(--font-sans); }
   body {
     background-image:
-      radial-gradient(at 15% 10%, oklch(0.83 0.18 220 / 0.12), transparent 50%),
-      radial-gradient(at 85% 90%, oklch(0.65 0.22 290 / 0.12), transparent 55%);
+      radial-gradient(at 12% 8%, oklch(0.62 0.22 282 / 0.18), transparent 55%),
+      radial-gradient(at 88% 92%, oklch(0.7 0.22 295 / 0.14), transparent 55%);
     background-attachment: fixed;
     min-height: 100vh;
   }
+  h1, h2, h3, h4, .font-display { font-family: var(--font-display); letter-spacing: -0.02em; font-weight: 800; }
   .font-mono { font-family: var(--font-mono); letter-spacing: 0.02em; }
 }
 
 @layer utilities {
-  .glow-cyan { box-shadow: 0 0 30px -5px oklch(0.83 0.18 220 / 0.5); }
-  .glow-violet { box-shadow: 0 0 30px -5px oklch(0.65 0.22 290 / 0.5); }
+  .glow-cyan { box-shadow: 0 0 40px -8px oklch(0.62 0.22 282 / 0.55); }
+  .glow-violet { box-shadow: 0 0 40px -8px oklch(0.7 0.22 295 / 0.55); }
   .text-gradient {
-    background: linear-gradient(135deg, oklch(0.83 0.18 220), oklch(0.65 0.22 290));
+    background: linear-gradient(135deg, oklch(0.62 0.22 282), oklch(0.78 0.18 305));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
   .bg-grid {
     background-image:
-      linear-gradient(oklch(0.83 0.18 220 / 0.06) 1px, transparent 1px),
-      linear-gradient(90deg, oklch(0.83 0.18 220 / 0.06) 1px, transparent 1px);
+      linear-gradient(oklch(0.62 0.22 282 / 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, oklch(0.62 0.22 282 / 0.08) 1px, transparent 1px);
     background-size: 32px 32px;
+  }
+  .editorial-rule {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--color-border), transparent);
   }
 
   .avatar-3d {
@@ -122,4 +127,11 @@
     50%      { transform: translateY(-3px) rotateY(6deg); }
   }
   .avatar-float { animation: avatar-float 4.5s ease-in-out infinite; }
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-up { animation: fade-up 0.6s cubic-bezier(0.22,1,0.36,1) both; }
 }
+
