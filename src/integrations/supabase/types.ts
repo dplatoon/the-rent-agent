@@ -255,6 +255,36 @@ export type Database = {
         }
         Relationships: []
       }
+      pwa_events: {
+        Row: {
+          created_at: string
+          event: string
+          id: string
+          meta: Json | null
+          platform: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event: string
+          id?: string
+          meta?: Json | null
+          platform?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event?: string
+          id?: string
+          meta?: Json | null
+          platform?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       saved_listings: {
         Row: {
           created_at: string
