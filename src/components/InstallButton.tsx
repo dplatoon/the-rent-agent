@@ -171,6 +171,7 @@ export function InstallButton() {
                 type="button"
                 onClick={() => {
                   navigator.clipboard?.writeText(window.location.href);
+                  trackPwaEvent("ios_copy_link");
                 }}
                 className="w-full rounded-md border border-border/60 bg-muted/30 hover:bg-muted/50 transition px-3 py-2 text-xs font-medium"
               >
