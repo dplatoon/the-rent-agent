@@ -153,7 +153,28 @@ export function InstallButton() {
           </Button>
         </PopoverTrigger>
         <PopoverContent align="end" className="w-72 text-sm">
-          <div className="font-semibold mb-2">Add to Home Screen</div>
+          <div className="font-semibold mb-2">
+            {inApp ? "Open this page in Safari" : "Add to Home Screen"}
+          </div>
+          {inApp ? (
+            <>
+              <p className="text-muted-foreground text-xs mb-3">
+                You're in an in-app browser, which can't install web apps.
+                Tap the <Share className="inline h-3.5 w-3.5 mx-0.5 align-text-bottom" />
+                menu and choose <strong>Open in Safari</strong>, then use Share → Add to Home Screen.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard?.writeText(window.location.href);
+                }}
+                className="w-full rounded-md border border-border/60 bg-muted/30 hover:bg-muted/50 transition px-3 py-2 text-xs font-medium"
+              >
+                Copy link to open in Safari
+              </button>
+            </>
+          ) : (
+          <>
           <p className="text-muted-foreground text-xs mb-3">
             iOS doesn't allow one-tap install. Use Safari's Share menu:
           </p>
