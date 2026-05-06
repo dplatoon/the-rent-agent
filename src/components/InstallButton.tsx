@@ -24,6 +24,7 @@ function detectIOS() {
 export function InstallButton() {
   const [deferred, setDeferred] = useState<BIPEvent | null>(null);
   const [installed, setInstalled] = useState(false);
+  const [justInstalled, setJustInstalled] = useState(false);
   const [supported, setSupported] = useState<boolean | null>(null);
   const [isIOS, setIsIOS] = useState(false);
 
@@ -43,7 +44,9 @@ export function InstallButton() {
     };
     const onInstalled = () => {
       setInstalled(true);
+      setJustInstalled(true);
       setDeferred(null);
+      window.setTimeout(() => setJustInstalled(false), 5000);
     };
     window.addEventListener("beforeinstallprompt", onPrompt);
     window.addEventListener("appinstalled", onInstalled);
@@ -60,6 +63,14 @@ export function InstallButton() {
   }, []);
 
   if (installed) {
+    if (justInstalled) {
+      return (
+        <span className="flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary animate-in fade-in slide-in-from-top-1 duration-300">
+          <CheckCircle2 className="h-3.5 w-3.5" />
+          Installed!
+        </span>
+      );
+    }
     return (
       <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
         <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
