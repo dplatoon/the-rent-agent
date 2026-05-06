@@ -39,8 +39,23 @@ export function InstallButton() {
   const [supported, setSupported] = useState<boolean | null>(null);
   const [isIOS, setIsIOS] = useState(false);
 
+  // Capture context for telemetry — kept in a ref-like object via state setters above.
+  const buildBaseMeta = (extra?: Record<string, unknown>) => ({
+    isIOS,
+    inApp: isIOS ? detectIOSInAppBrowser() : false,
+    supported,
+    installed,
+    standalone:
+      typeof window !== "undefined" &&
+      (window.matchMedia?.("(display-mode: standalone)").matches ||
+        // @ts-expect-error iOS Safari
+        window.navigator.standalone === true),
+    ...(extra ?? {}),
+  });
+
   useEffect(() => {
-    setIsIOS(detectIOS());
+    const ios = detectIOS();
+    setIsIOS(ios);
 
     const standalone =
       window.matchMedia?.("(display-mode: standalone)").matches ||
@@ -48,8 +63,6 @@ export function InstallButton() {
       window.navigator.standalone === true;
     if (standalone) {
       setInstalled(true);
-      // On load while installed, only show the pill if a recent install
-      // happened and the user hasn't dismissed it.
       try {
         const installedAt = Number(localStorage.getItem("pwa:installedAt") || 0);
         const dismissedAt = Number(localStorage.getItem("pwa:pillDismissedAt") || 0);
@@ -62,7 +75,12 @@ export function InstallButton() {
       e.preventDefault();
       setDeferred(e as BIPEvent);
       setSupported(true);
-      trackPwaEvent("prompt_shown");
+      trackPwaEvent("prompt_shown", {
+        isIOS: ios,
+        inApp: ios ? detectIOSInAppBrowser() : false,
+        supported: true,
+        standalone,
+      });
     };
     const onInstalled = () => {
       setInstalled(true);
@@ -72,7 +90,11 @@ export function InstallButton() {
         localStorage.setItem("pwa:installedAt", String(Date.now()));
         localStorage.removeItem("pwa:pillDismissedAt");
       } catch {}
-      trackPwaEvent("installed");
+      trackPwaEvent("installed", {
+        isIOS: ios,
+        inApp: ios ? detectIOSInAppBrowser() : false,
+        source: standalone ? "already_standalone" : "appinstalled_event",
+      });
       window.setTimeout(() => setJustInstalled(false), 5000);
     };
     const onStorage = (e: StorageEvent) => {
@@ -99,7 +121,7 @@ export function InstallButton() {
     try {
       localStorage.setItem("pwa:pillDismissedAt", String(Date.now()));
     } catch {}
-    trackPwaEvent("pill_dismissed");
+    trackPwaEvent("pill_dismissed", buildBaseMeta({ method: "close_button" }));
   };
 
   if (installed) {
@@ -135,7 +157,10 @@ export function InstallButton() {
         onClick={async () => {
           await deferred.prompt();
           const { outcome } = await deferred.userChoice;
-          trackPwaEvent(outcome === "accepted" ? "prompt_accepted" : "prompt_dismissed");
+          trackPwaEvent(
+            outcome === "accepted" ? "prompt_accepted" : "prompt_dismissed",
+            buildBaseMeta({ outcome }),
+          );
           if (outcome === "accepted") setDeferred(null);
         }}
         className="gap-1.5"
@@ -149,7 +174,7 @@ export function InstallButton() {
   if (isIOS) {
     const inApp = detectIOSInAppBrowser();
     return (
-      <Popover onOpenChange={(o) => { if (o) trackPwaEvent(inApp ? "ios_open_in_safari" : "ios_help_opened"); }}>
+      <Popover onOpenChange={(o) => { if (o) trackPwaEvent(inApp ? "ios_open_in_safari" : "ios_help_opened", buildBaseMeta({ inApp })); }}>
         <PopoverTrigger asChild>
           <Button size="sm" variant="outline" className="gap-1.5">
             <Share className="h-3.5 w-3.5" />
@@ -171,7 +196,7 @@ export function InstallButton() {
                 type="button"
                 onClick={() => {
                   navigator.clipboard?.writeText(window.location.href);
-                  trackPwaEvent("ios_copy_link");
+                  trackPwaEvent("ios_copy_link", buildBaseMeta({ inApp: true }));
                 }}
                 className="w-full rounded-md border border-border/60 bg-muted/30 hover:bg-muted/50 transition px-3 py-2 text-xs font-medium"
               >
@@ -217,7 +242,7 @@ export function InstallButton() {
 
   if (supported === false) {
     return (
-      <Popover onOpenChange={(o) => { if (o) trackPwaEvent("unsupported_help_opened"); }}>
+      <Popover onOpenChange={(o) => { if (o) trackPwaEvent("unsupported_help_opened", buildBaseMeta()); }}>
         <PopoverTrigger asChild>
           <Button size="sm" variant="ghost" className="gap-1.5 text-muted-foreground">
             <Download className="h-3.5 w-3.5" />
