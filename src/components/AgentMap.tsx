@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { Database } from "@/integrations/supabase/types";
+import { getAgentAvatar } from "@/lib/agent-avatars";
 
 type Agent = Database["public"]["Tables"]["agents"]["Row"];
 
@@ -23,14 +24,25 @@ export function AgentMap({ agents, compact = false }: { agents: Agent[]; compact
         >
           <div className="relative">
             <div
-              className="w-12 h-12 rounded-full flex items-center justify-center text-2xl border-2 transition-all group-hover:scale-125"
+              className="w-14 h-14 rounded-full overflow-hidden border-2 transition-all group-hover:scale-125 group-hover:-translate-y-1"
               style={{
                 background: `${a.color}22`,
                 borderColor: a.color,
-                boxShadow: `0 0 20px ${a.color}66`,
+                boxShadow: `0 0 24px ${a.color}88, inset 0 -4px 10px ${a.color}44`,
               }}
             >
-              {a.avatar_emoji}
+              {getAgentAvatar(a.id) ? (
+                <img
+                  src={getAgentAvatar(a.id)}
+                  alt={a.name}
+                  loading="lazy"
+                  width={56}
+                  height={56}
+                  className="w-full h-full object-cover object-top"
+                />
+              ) : (
+                <span className="w-full h-full flex items-center justify-center text-2xl">{a.avatar_emoji}</span>
+              )}
             </div>
             {a.is_online && (
               <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-mint border-2 border-background animate-pulse" />

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { AgentMap } from "@/components/AgentMap";
 import { fetchAgents } from "@/lib/agents";
+import { getAgentAvatar } from "@/lib/agent-avatars";
 import type { Database } from "@/integrations/supabase/types";
 import { ArrowRight, Sparkles, Zap, Shield } from "lucide-react";
 
@@ -73,10 +74,14 @@ function Index() {
             >
               <div className="flex items-start gap-4">
                 <div
-                  className="w-14 h-14 rounded-xl flex items-center justify-center text-3xl shrink-0"
-                  style={{ background: `${a.color}22`, border: `1px solid ${a.color}66` }}
+                  className="w-16 h-16 rounded-2xl overflow-hidden shrink-0"
+                  style={{ background: `${a.color}22`, border: `1px solid ${a.color}66`, boxShadow: `0 8px 24px -8px ${a.color}88` }}
                 >
-                  {a.avatar_emoji}
+                  {getAgentAvatar(a.id) ? (
+                    <img src={getAgentAvatar(a.id)} alt={a.name} loading="lazy" width={64} height={64} className="w-full h-full object-cover object-top" />
+                  ) : (
+                    <span className="w-full h-full flex items-center justify-center text-3xl">{a.avatar_emoji}</span>
+                  )}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">

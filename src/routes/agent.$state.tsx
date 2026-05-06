@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchAgent } from "@/lib/agents";
+import { getAgentAvatar } from "@/lib/agent-avatars";
 import type { Database } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -155,9 +156,13 @@ function AgentChat() {
       {/* Agent header */}
       <div className="rounded-2xl border border-border bg-card p-5 mb-4 flex items-center gap-4"
            style={{ borderColor: `${agent.color}55`, boxShadow: `0 0 30px -10px ${agent.color}66` }}>
-        <div className="w-16 h-16 rounded-xl flex items-center justify-center text-4xl shrink-0"
-             style={{ background: `${agent.color}22`, border: `1px solid ${agent.color}66` }}>
-          {agent.avatar_emoji}
+        <div className="w-20 h-20 rounded-2xl overflow-hidden shrink-0"
+             style={{ background: `${agent.color}22`, border: `1px solid ${agent.color}66`, boxShadow: `0 10px 30px -10px ${agent.color}88` }}>
+          {getAgentAvatar(agent.id) ? (
+            <img src={getAgentAvatar(agent.id)} alt={agent.name} width={80} height={80} className="w-full h-full object-cover object-top" />
+          ) : (
+            <span className="w-full h-full flex items-center justify-center text-4xl">{agent.avatar_emoji}</span>
+          )}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
