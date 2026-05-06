@@ -12,11 +12,11 @@ export function CompareBar() {
   const open = useCompare((s) => s.dialogOpen);
   const setOpen = useCompare((s) => s.setDialogOpen);
 
-  if (!enabled || items.length === 0) return null;
+  const showBar = enabled && items.length > 0;
 
   return (
     <>
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[min(96vw,900px)] rounded-2xl border border-primary/40 bg-card/95 backdrop-blur-xl shadow-2xl p-3 animate-fade-up">
+      {showBar && (
         <div className="flex items-center gap-3">
           <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary shrink-0 px-2">
             Compare · {items.length}
