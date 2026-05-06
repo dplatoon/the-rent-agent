@@ -27,7 +27,12 @@ function AgentChat() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
+  const [agentListings, setAgentListings] = useState<Listing[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    fetchListings({ agent_id: state, limit: 4 }).then(setAgentListings).catch(() => {});
+  }, [state]);
 
   useEffect(() => {
     fetchAgent(state).then((a) => {
