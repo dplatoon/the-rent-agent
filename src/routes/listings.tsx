@@ -8,7 +8,8 @@ import { ListingCard } from "@/components/ListingCard";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { SlidersHorizontal, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { SlidersHorizontal, Search, ChevronLeft, ChevronRight, GitCompare } from "lucide-react";
+import { useCompare } from "@/lib/compare-store";
 
 const SORTS = ["featured", "price-asc", "price-desc", "beds-desc", "newest"] as const;
 type Sort = (typeof SORTS)[number];
