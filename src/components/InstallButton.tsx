@@ -90,7 +90,7 @@ export function InstallButton() {
           Installed!
           <button
             type="button"
-            onClick={() => setJustInstalled(false)}
+            onClick={dismissPill}
             aria-label="Dismiss"
             className="ml-0.5 rounded-full p-0.5 hover:bg-primary/20 transition"
           >
