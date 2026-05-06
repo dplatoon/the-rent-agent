@@ -48,6 +48,21 @@ function AuthPage() {
     }
   };
 
+  const handleGoogle = async () => {
+    setLoading(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: `${window.location.origin}/dashboard`,
+      });
+      if (result.error) throw new Error(result.error.message || "Google sign-in failed");
+      if (result.redirected) return;
+      navigate({ to: "/dashboard" });
+    } catch (err: any) {
+      toast.error(err.message || "Google sign-in failed");
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="min-h-[80vh] flex items-center justify-center px-6 py-12">
       <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 glow-cyan">
