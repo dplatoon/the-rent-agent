@@ -11,7 +11,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:pwa-telemetry": "vitest run src/lib/pwa-telemetry.test.ts",
-    "test:pwa-telemetry:coverage": "vitest run src/lib/pwa-telemetry.test.ts --coverage --coverage.include=src/lib/pwa-telemetry.ts --coverage.reporter=text --coverage.reporter=html --coverage.reporter=lcov --coverage.reporter=json-summary --coverage.reportsDirectory=coverage/pwa-telemetry",
+    "test:pwa-telemetry:coverage": "vitest run src/lib/pwa-telemetry.test.ts --coverage --coverage.include=src/lib/pwa-telemetry.ts --coverage.reporter=text --coverage.reporter=html --coverage.reporter=lcov --coverage.reporter=json-summary --coverage.reportsDirectory=coverage/pwa-telemetry --coverage.thresholds.lines=85 --coverage.thresholds.statements=75 --coverage.thresholds.functions=90 --coverage.thresholds.branches=60",
     "format": "prettier --write ."
   },
   "dependencies": {
