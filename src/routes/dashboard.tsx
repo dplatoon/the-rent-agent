@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getAgentAvatar } from "@/lib/agent-avatars";
 import { MessageSquare } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard")({
@@ -68,9 +69,13 @@ function Dashboard() {
               params={{ state: c.agent_id.toLowerCase() }}
               className="rounded-xl border border-border bg-card p-4 hover:border-primary/40 transition flex items-center gap-3"
             >
-              <div className="w-12 h-12 rounded-lg flex items-center justify-center text-2xl shrink-0"
+              <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0"
                    style={{ background: `${c.agents?.color}22`, border: `1px solid ${c.agents?.color}66` }}>
-                {c.agents?.avatar_emoji}
+                {getAgentAvatar(c.agent_id) ? (
+                  <img src={getAgentAvatar(c.agent_id)} alt={c.agents?.name || ""} loading="lazy" width={48} height={48} className="w-full h-full object-cover object-top" />
+                ) : (
+                  <span className="w-full h-full flex items-center justify-center text-2xl">{c.agents?.avatar_emoji}</span>
+                )}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="font-bold truncate">{c.agents?.name}</div>

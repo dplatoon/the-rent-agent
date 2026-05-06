@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { AgentMap } from "@/components/AgentMap";
 import { fetchAgents } from "@/lib/agents";
+import { getAgentAvatar } from "@/lib/agent-avatars";
 import type { Database } from "@/integrations/supabase/types";
 
 type Agent = Database["public"]["Tables"]["agents"]["Row"];
@@ -38,9 +39,13 @@ function MapPage() {
             className="rounded-xl border border-border bg-card p-4 hover:border-primary/40 transition"
           >
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-lg flex items-center justify-center text-2xl"
-                   style={{ background: `${a.color}22`, border: `1px solid ${a.color}66` }}>
-                {a.avatar_emoji}
+              <div className="w-14 h-14 rounded-xl overflow-hidden"
+                   style={{ background: `${a.color}22`, border: `1px solid ${a.color}66`, boxShadow: `0 6px 18px -6px ${a.color}88` }}>
+                {getAgentAvatar(a.id) ? (
+                  <img src={getAgentAvatar(a.id)} alt={a.name} loading="lazy" width={56} height={56} className="w-full h-full object-cover object-top" />
+                ) : (
+                  <span className="w-full h-full flex items-center justify-center text-2xl">{a.avatar_emoji}</span>
+                )}
               </div>
               <div className="min-w-0">
                 <div className="font-bold truncate">{a.name}</div>
