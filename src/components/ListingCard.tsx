@@ -47,8 +47,8 @@ export function ListingCard({ listing, saved = false, onChange }: { listing: Lis
 
   return (
     <Link
-      to="/agent/$state"
-      params={{ state: listing.agent_id.toLowerCase() }}
+      to="/listings/$id"
+      params={{ id: listing.id }}
       className={`group relative block rounded-2xl overflow-hidden border bg-card transition hover:-translate-y-1 hover:shadow-2xl ${
         isComparing ? "border-primary ring-2 ring-primary/40" : "border-border hover:border-primary/50"
       }`}

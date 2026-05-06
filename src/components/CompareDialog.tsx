@@ -35,8 +35,8 @@ export function CompareDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                 {items.map((l) => (
                   <th key={l.id} className="text-left align-top min-w-[200px]">
                     <Link
-                      to="/agent/$state"
-                      params={{ state: l.agent_id.toLowerCase() }}
+                      to="/listings/$id"
+                      params={{ id: l.id }}
                       className="block group"
                     >
                       <div className="aspect-[4/3] rounded-xl overflow-hidden bg-elevated mb-3">
