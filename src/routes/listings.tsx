@@ -281,3 +281,21 @@ function pageNumbers(current: number, total: number): (number | "…")[] {
   }
   return pages;
 }
+
+function CompareToggle() {
+  const enabled = useCompare((s) => s.enabled);
+  const setEnabled = useCompare((s) => s.setEnabled);
+  const count = useCompare((s) => s.items.length);
+  return (
+    <button
+      onClick={() => setEnabled(!enabled)}
+      aria-pressed={enabled}
+      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition ${
+        enabled ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground hover:border-primary/40"
+      }`}
+    >
+      <GitCompare className="h-3.5 w-3.5" />
+      Compare {count > 0 && `(${count})`}
+    </button>
+  );
+}
