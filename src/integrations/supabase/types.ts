@@ -322,7 +322,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      consume_daily_chat: {
+        Args: { _limit?: number; _user_id: string }
+        Returns: {
+          allowed: boolean
+          remaining: number
+          tier: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
