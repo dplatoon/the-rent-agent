@@ -1,18 +1,35 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Download, CheckCircle2, Info } from "lucide-react";
+import { Download, CheckCircle2, Share, Plus } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 type BIPEvent = Event & {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
+function detectIOS() {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  const isIPad =
+    /iPad/.test(ua) ||
+    (navigator.platform === "MacIntel" && (navigator as any).maxTouchPoints > 1);
+  return /iPhone|iPod/.test(ua) || isIPad;
+}
+
 export function InstallButton() {
   const [deferred, setDeferred] = useState<BIPEvent | null>(null);
   const [installed, setInstalled] = useState(false);
   const [supported, setSupported] = useState<boolean | null>(null);
+  const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
+    setIsIOS(detectIOS());
+
     const standalone =
       window.matchMedia?.("(display-mode: standalone)").matches ||
       // @ts-expect-error iOS Safari
@@ -31,7 +48,6 @@ export function InstallButton() {
     window.addEventListener("beforeinstallprompt", onPrompt);
     window.addEventListener("appinstalled", onInstalled);
 
-    // If beforeinstallprompt hasn't fired after a short delay, treat as unsupported.
     const t = window.setTimeout(() => {
       setSupported((prev) => (prev === null ? false : prev));
     }, 2500);
@@ -70,15 +86,68 @@ export function InstallButton() {
     );
   }
 
+  if (isIOS) {
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button size="sm" variant="outline" className="gap-1.5">
+            <Share className="h-3.5 w-3.5" />
+            Install on iOS
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent align="end" className="w-72 text-sm">
+          <div className="font-semibold mb-2">Add to Home Screen</div>
+          <p className="text-muted-foreground text-xs mb-3">
+            iOS doesn't allow one-tap install. Use Safari's Share menu:
+          </p>
+          <ol className="space-y-2 text-xs">
+            <li className="flex gap-2">
+              <span className="font-mono text-primary">1.</span>
+              <span className="flex-1">
+                Tap the <Share className="inline h-3.5 w-3.5 mx-0.5 align-text-bottom" />
+                <strong> Share</strong> button in Safari's toolbar.
+              </span>
+            </li>
+            <li className="flex gap-2">
+              <span className="font-mono text-primary">2.</span>
+              <span className="flex-1">
+                Scroll and tap <Plus className="inline h-3.5 w-3.5 mx-0.5 align-text-bottom" />
+                <strong> Add to Home Screen</strong>.
+              </span>
+            </li>
+            <li className="flex gap-2">
+              <span className="font-mono text-primary">3.</span>
+              <span className="flex-1">
+                Tap <strong>Add</strong> in the top-right corner.
+              </span>
+            </li>
+          </ol>
+          <p className="text-muted-foreground text-[11px] mt-3 border-t border-border/50 pt-2">
+            Note: this only works in Safari, not Chrome or in-app browsers.
+          </p>
+        </PopoverContent>
+      </Popover>
+    );
+  }
+
   if (supported === false) {
     return (
-      <span
-        className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground"
-        title="Your browser doesn't support one-click install. On iOS, use Share → Add to Home Screen."
-      >
-        <Info className="h-3.5 w-3.5" />
-        Install not supported
-      </span>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button size="sm" variant="ghost" className="gap-1.5 text-muted-foreground">
+            <Download className="h-3.5 w-3.5" />
+            Install help
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent align="end" className="w-72 text-sm">
+          <div className="font-semibold mb-2">Install not available</div>
+          <p className="text-muted-foreground text-xs">
+            Your browser doesn't expose a one-click install. Try opening this site
+            in Chrome, Edge, or Safari (iOS) — then look for "Install app" or
+            "Add to Home Screen" in the browser menu.
+          </p>
+        </PopoverContent>
+      </Popover>
     );
   }
 
