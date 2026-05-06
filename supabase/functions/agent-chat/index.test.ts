@@ -199,58 +199,56 @@ Deno.test("HTTP 400 invalid_request when message exceeds 2000 chars", async () =
   assertEquals(json.error, "invalid_request");
 });
 
-Deno.test("HTTP 429 daily_limit when free-tier user hits the cap", async () => {
-  if (!ANON_KEY) {
-    console.warn("skipping: no anon key available to mint a user JWT");
-    return;
-  }
-  const user = await createTestUser();
-  try {
-    // Saturate the daily counter so the next request must be denied.
-    await admin
-      .from("profiles")
-      .update({
-        tier: "free",
-        daily_chat_count: 5,
-        daily_chat_reset_at: new Date().toISOString(),
-      })
-      .eq("id", user.id);
+Deno.test({
+  name: "HTTP 429 daily_limit when free-tier user hits the cap",
+  // GoTrueClient keeps internal timers/locks alive briefly after signOut.
+  sanitizeOps: false,
+  sanitizeResources: false,
+  fn: async () => {
+    if (!ANON_KEY) {
+      console.warn("skipping: no anon key available to mint a user JWT");
+      return;
+    }
+    const user = await createTestUser();
+    try {
+      // Saturate the daily counter so the next request must be denied.
+      await admin
+        .from("profiles")
+        .update({
+          tier: "free",
+          daily_chat_count: 5,
+          daily_chat_reset_at: new Date().toISOString(),
+        })
+        .eq("id", user.id);
 
-    // Sign in as the user to obtain a real JWT.
-    const userClient = createClient(SUPABASE_URL, ANON_KEY, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
-    const { data: signIn, error: signInErr } =
-      await userClient.auth.signInWithPassword({
-        email: user.email,
-        password: "Test1234!Test1234!",
+      // Sign in as the user to obtain a real JWT.
+      const userClient = createClient(SUPABASE_URL, ANON_KEY, {
+        auth: { persistSession: false, autoRefreshToken: false },
       });
-    assertEquals(signInErr, null, `sign-in error: ${signInErr?.message}`);
-    const jwt = signIn.session?.access_token;
-    assert(jwt, "expected access_token from sign-in");
+      const { data: signIn, error: signInErr } =
+        await userClient.auth.signInWithPassword({
+          email: user.email,
+          password: "Test1234!Test1234!",
+        });
+      assertEquals(signInErr, null, `sign-in error: ${signInErr?.message}`);
+      const jwt = signIn.session?.access_token;
+      assert(jwt, "expected access_token from sign-in");
 
-    const res = await call({
-      origin: ALLOWED_ORIGIN,
-      auth: `Bearer ${jwt}`,
-      body: { conversation_id: crypto.randomUUID(), message: "hello" },
-    });
-    const json = await res.json();
-    assertEquals(res.status, 429);
-    assertEquals(json.error, "daily_limit");
-    await userClient.auth.signOut();
-  } finally {
-    await deleteTestUser(user.id);
-  }
+      const res = await call({
+        origin: ALLOWED_ORIGIN,
+        auth: `Bearer ${jwt}`,
+        body: { conversation_id: crypto.randomUUID(), message: "hello" },
+      });
+      const json = await res.json();
+      assertEquals(res.status, 429);
+      assertEquals(json.error, "daily_limit");
+      await userClient.auth.signOut();
+    } finally {
+      await deleteTestUser(user.id);
+    }
+  },
 });
 
-// Sanitizers off: GoTrueClient keeps a refresh-token interval alive even when
-// autoRefreshToken is false; signOut tears it down but the test runner still
-// sees the timer briefly. Disabling the leak detector for this case is safe.
-Object.assign(
-  // @ts-ignore — patch metadata on the previously registered test
-  {},
-  {},
-);
 
 Deno.test("HTTP 400 invalid_request on malformed JSON body", async () => {
   const res = await fetch(FN_URL, {
