@@ -22,9 +22,9 @@ export function AgentMap({ agents, compact = false }: { agents: Agent[]; compact
           className="absolute group"
           style={{ left: `${a.map_x}%`, top: `${a.map_y}%`, transform: "translate(-50%,-50%)" }}
         >
-          <div className="relative">
+          <div className="relative avatar-3d-wrap">
             <div
-              className="w-14 h-14 rounded-full overflow-hidden border-2 transition-all group-hover:scale-125 group-hover:-translate-y-1"
+              className="avatar-3d avatar-float w-14 h-14 rounded-full overflow-hidden border-2 group-hover:-translate-y-1"
               style={{
                 background: `${a.color}22`,
                 borderColor: a.color,
