@@ -199,54 +199,62 @@ Deno.test("HTTP 400 invalid_request when message exceeds 2000 chars", async () =
   assertEquals(json.error, "invalid_request");
 });
 
-Deno.test({
-  name: "HTTP 429 daily_limit when free-tier user hits the cap",
-  // GoTrueClient keeps internal timers/locks alive briefly after signOut.
-  sanitizeOps: false,
-  sanitizeResources: false,
-  fn: async () => {
-    if (!ANON_KEY) {
-      console.warn("skipping: no anon key available to mint a user JWT");
-      return;
-    }
-    const user = await createTestUser();
-    try {
-      // Saturate the daily counter so the next request must be denied.
-      await admin
-        .from("profiles")
-        .update({
-          tier: "free",
-          daily_chat_count: 5,
-          daily_chat_reset_at: new Date().toISOString(),
-        })
-        .eq("id", user.id);
+// Mint a user JWT via the auth REST endpoint directly. Avoids GoTrueClient,
+// which spins up refresh-token intervals and lock/visibility listeners that
+// the Deno test sanitizer flags as leaked timers/resources.
+async function signInPassword(
+  email: string,
+  password: string,
+): Promise<string> {
+  const res = await fetch(
+    `${SUPABASE_URL}/auth/v1/token?grant_type=password`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: ANON_KEY,
+        Authorization: `Bearer ${ANON_KEY}`,
+      },
+      body: JSON.stringify({ email, password }),
+    },
+  );
+  const json = await res.json();
+  if (!res.ok || !json.access_token) {
+    throw new Error(`sign-in failed: ${res.status} ${JSON.stringify(json)}`);
+  }
+  return json.access_token as string;
+}
 
-      // Sign in as the user to obtain a real JWT.
-      const userClient = createClient(SUPABASE_URL, ANON_KEY, {
-        auth: { persistSession: false, autoRefreshToken: false },
-      });
-      const { data: signIn, error: signInErr } =
-        await userClient.auth.signInWithPassword({
-          email: user.email,
-          password: "Test1234!Test1234!",
-        });
-      assertEquals(signInErr, null, `sign-in error: ${signInErr?.message}`);
-      const jwt = signIn.session?.access_token;
-      assert(jwt, "expected access_token from sign-in");
+Deno.test("HTTP 429 daily_limit when free-tier user hits the cap", async () => {
+  if (!ANON_KEY) {
+    console.warn("skipping: no anon key available to mint a user JWT");
+    return;
+  }
+  const user = await createTestUser();
+  try {
+    // Saturate the daily counter so the next request must be denied.
+    await admin
+      .from("profiles")
+      .update({
+        tier: "free",
+        daily_chat_count: 5,
+        daily_chat_reset_at: new Date().toISOString(),
+      })
+      .eq("id", user.id);
 
-      const res = await call({
-        origin: ALLOWED_ORIGIN,
-        auth: `Bearer ${jwt}`,
-        body: { conversation_id: crypto.randomUUID(), message: "hello" },
-      });
-      const json = await res.json();
-      assertEquals(res.status, 429);
-      assertEquals(json.error, "daily_limit");
-      await userClient.auth.signOut();
-    } finally {
-      await deleteTestUser(user.id);
-    }
-  },
+    const jwt = await signInPassword(user.email, "Test1234!Test1234!");
+
+    const res = await call({
+      origin: ALLOWED_ORIGIN,
+      auth: `Bearer ${jwt}`,
+      body: { conversation_id: crypto.randomUUID(), message: "hello" },
+    });
+    const json = await res.json();
+    assertEquals(res.status, 429);
+    assertEquals(json.error, "daily_limit");
+  } finally {
+    await deleteTestUser(user.id);
+  }
 });
 
 
