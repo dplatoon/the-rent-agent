@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchAgent } from "@/lib/agents";
 import { getAgentAvatar } from "@/lib/agent-avatars";
+import { fetchListings, type Listing } from "@/lib/listings";
+import { ListingCard } from "@/components/ListingCard";
 import type { Database } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
