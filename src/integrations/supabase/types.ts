@@ -106,6 +106,72 @@ export type Database = {
           },
         ]
       }
+      listings: {
+        Row: {
+          agent_id: string
+          amenities: string[]
+          available_from: string | null
+          bathrooms: number
+          bedrooms: number
+          city: string
+          created_at: string
+          description: string | null
+          furnished: boolean
+          id: string
+          image_url: string
+          is_featured: boolean
+          neighborhood: string
+          pet_friendly: boolean
+          price_monthly: number
+          sqft: number | null
+          state: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          amenities?: string[]
+          available_from?: string | null
+          bathrooms: number
+          bedrooms: number
+          city: string
+          created_at?: string
+          description?: string | null
+          furnished?: boolean
+          id?: string
+          image_url: string
+          is_featured?: boolean
+          neighborhood: string
+          pet_friendly?: boolean
+          price_monthly: number
+          sqft?: number | null
+          state: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          amenities?: string[]
+          available_from?: string | null
+          bathrooms?: number
+          bedrooms?: number
+          city?: string
+          created_at?: string
+          description?: string | null
+          furnished?: boolean
+          id?: string
+          image_url?: string
+          is_featured?: boolean
+          neighborhood?: string
+          pet_friendly?: boolean
+          price_monthly?: number
+          sqft?: number | null
+          state?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string
@@ -188,6 +254,38 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      saved_listings: {
+        Row: {
+          created_at: string
+          id: string
+          listing_id: string
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          listing_id: string
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          listing_id?: string
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_listings_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
