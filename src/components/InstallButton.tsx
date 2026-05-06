@@ -63,6 +63,14 @@ export function InstallButton() {
   }, []);
 
   if (installed) {
+    if (justInstalled) {
+      return (
+        <span className="flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary animate-in fade-in slide-in-from-top-1 duration-300">
+          <CheckCircle2 className="h-3.5 w-3.5" />
+          Installed!
+        </span>
+      );
+    }
     return (
       <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
         <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
