@@ -70,9 +70,15 @@ export function InstallButton() {
         localStorage.setItem("pwa:installedAt", String(Date.now()));
         localStorage.removeItem("pwa:pillDismissedAt");
       } catch {}
+      // Auto-dismiss fallback after 5s (user can still dismiss earlier).
+      window.setTimeout(() => setJustInstalled(false), 5000);
+    };
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "pwa:pillDismissedAt") setJustInstalled(false);
     };
     window.addEventListener("beforeinstallprompt", onPrompt);
     window.addEventListener("appinstalled", onInstalled);
+    window.addEventListener("storage", onStorage);
 
     const t = window.setTimeout(() => {
       setSupported((prev) => (prev === null ? false : prev));
@@ -81,6 +87,7 @@ export function InstallButton() {
     return () => {
       window.removeEventListener("beforeinstallprompt", onPrompt);
       window.removeEventListener("appinstalled", onInstalled);
+      window.removeEventListener("storage", onStorage);
       window.clearTimeout(t);
     };
   }, []);
