@@ -65,9 +65,17 @@ export function InstallButton() {
   if (installed) {
     if (justInstalled) {
       return (
-        <span className="flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary animate-in fade-in slide-in-from-top-1 duration-300">
+        <span className="flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 pl-2.5 pr-1 py-1 text-xs font-medium text-primary animate-in fade-in slide-in-from-top-1 duration-300">
           <CheckCircle2 className="h-3.5 w-3.5" />
           Installed!
+          <button
+            type="button"
+            onClick={() => setJustInstalled(false)}
+            aria-label="Dismiss"
+            className="ml-0.5 rounded-full p-0.5 hover:bg-primary/20 transition"
+          >
+            <X className="h-3 w-3" />
+          </button>
         </span>
       );
     }
