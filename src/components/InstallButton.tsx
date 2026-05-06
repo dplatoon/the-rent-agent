@@ -6,6 +6,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { trackPwaEvent } from "@/lib/pwa-telemetry";
 
 type BIPEvent = Event & {
   prompt: () => Promise<void>;
@@ -61,6 +62,7 @@ export function InstallButton() {
       e.preventDefault();
       setDeferred(e as BIPEvent);
       setSupported(true);
+      trackPwaEvent("prompt_shown");
     };
     const onInstalled = () => {
       setInstalled(true);
@@ -70,7 +72,7 @@ export function InstallButton() {
         localStorage.setItem("pwa:installedAt", String(Date.now()));
         localStorage.removeItem("pwa:pillDismissedAt");
       } catch {}
-      // Auto-dismiss fallback after 5s (user can still dismiss earlier).
+      trackPwaEvent("installed");
       window.setTimeout(() => setJustInstalled(false), 5000);
     };
     const onStorage = (e: StorageEvent) => {
@@ -97,6 +99,7 @@ export function InstallButton() {
     try {
       localStorage.setItem("pwa:pillDismissedAt", String(Date.now()));
     } catch {}
+    trackPwaEvent("pill_dismissed");
   };
 
   if (installed) {
@@ -132,6 +135,7 @@ export function InstallButton() {
         onClick={async () => {
           await deferred.prompt();
           const { outcome } = await deferred.userChoice;
+          trackPwaEvent(outcome === "accepted" ? "prompt_accepted" : "prompt_dismissed");
           if (outcome === "accepted") setDeferred(null);
         }}
         className="gap-1.5"
@@ -145,7 +149,7 @@ export function InstallButton() {
   if (isIOS) {
     const inApp = detectIOSInAppBrowser();
     return (
-      <Popover>
+      <Popover onOpenChange={(o) => { if (o) trackPwaEvent(inApp ? "ios_open_in_safari" : "ios_help_opened"); }}>
         <PopoverTrigger asChild>
           <Button size="sm" variant="outline" className="gap-1.5">
             <Share className="h-3.5 w-3.5" />
@@ -167,6 +171,7 @@ export function InstallButton() {
                 type="button"
                 onClick={() => {
                   navigator.clipboard?.writeText(window.location.href);
+                  trackPwaEvent("ios_copy_link");
                 }}
                 className="w-full rounded-md border border-border/60 bg-muted/30 hover:bg-muted/50 transition px-3 py-2 text-xs font-medium"
               >
@@ -212,7 +217,7 @@ export function InstallButton() {
 
   if (supported === false) {
     return (
-      <Popover>
+      <Popover onOpenChange={(o) => { if (o) trackPwaEvent("unsupported_help_opened"); }}>
         <PopoverTrigger asChild>
           <Button size="sm" variant="ghost" className="gap-1.5 text-muted-foreground">
             <Download className="h-3.5 w-3.5" />
