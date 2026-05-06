@@ -1,0 +1,1 @@
+REVOKE UPDATE (tier, daily_chat_count, daily_chat_reset_at) ON public.profiles FROM authenticated, anon;
