@@ -35,7 +35,17 @@ export function InstallButton() {
       window.matchMedia?.("(display-mode: standalone)").matches ||
       // @ts-expect-error iOS Safari
       window.navigator.standalone === true;
-    if (standalone) setInstalled(true);
+    if (standalone) {
+      setInstalled(true);
+      // On load while installed, only show the pill if a recent install
+      // happened and the user hasn't dismissed it.
+      try {
+        const installedAt = Number(localStorage.getItem("pwa:installedAt") || 0);
+        const dismissedAt = Number(localStorage.getItem("pwa:pillDismissedAt") || 0);
+        const fresh = installedAt && Date.now() - installedAt < 1000 * 60 * 60 * 24;
+        if (fresh && dismissedAt < installedAt) setJustInstalled(true);
+      } catch {}
+    }
 
     const onPrompt = (e: Event) => {
       e.preventDefault();
@@ -46,7 +56,10 @@ export function InstallButton() {
       setInstalled(true);
       setJustInstalled(true);
       setDeferred(null);
-      window.setTimeout(() => setJustInstalled(false), 5000);
+      try {
+        localStorage.setItem("pwa:installedAt", String(Date.now()));
+        localStorage.removeItem("pwa:pillDismissedAt");
+      } catch {}
     };
     window.addEventListener("beforeinstallprompt", onPrompt);
     window.addEventListener("appinstalled", onInstalled);
@@ -61,6 +74,13 @@ export function InstallButton() {
       window.clearTimeout(t);
     };
   }, []);
+
+  const dismissPill = () => {
+    setJustInstalled(false);
+    try {
+      localStorage.setItem("pwa:pillDismissedAt", String(Date.now()));
+    } catch {}
+  };
 
   if (installed) {
     if (justInstalled) {
