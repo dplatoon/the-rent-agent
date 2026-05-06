@@ -26,11 +26,13 @@ export const Route = createRootRoute({
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "RentAgent.io — 50 AI Agents. 50 States. One rental search." },
       { name: "description", content: "Meet a unique AI rental agent for every US state. Chat, explore listings, and find your next home — without the Zillow chaos." },
+      { name: "theme-color", content: "#4f46e5" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "icon", type: "image/png", href: "/favicon.png" },
       { rel: "apple-touch-icon", href: "/favicon.png" },
+      { rel: "manifest", href: "/site.webmanifest" },
     ],
   }),
   shellComponent: RootShell,
