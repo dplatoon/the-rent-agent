@@ -179,6 +179,7 @@ function ListingsPage() {
           ))}
         </div>
         <div className="flex items-center gap-3">
+          <CompareToggle />
           {hasFilters && (
             <button onClick={clearAll} className="text-xs text-muted-foreground hover:text-foreground underline">
               Clear filters
