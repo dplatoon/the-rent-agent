@@ -9,7 +9,8 @@ export function CompareBar() {
   const enabled = useCompare((s) => s.enabled);
   const remove = useCompare((s) => s.remove);
   const clear = useCompare((s) => s.clear);
-  const [open, setOpen] = useState(false);
+  const open = useCompare((s) => s.dialogOpen);
+  const setOpen = useCompare((s) => s.setDialogOpen);
 
   if (!enabled || items.length === 0) return null;
 
