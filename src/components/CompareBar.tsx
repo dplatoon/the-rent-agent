@@ -17,36 +17,38 @@ export function CompareBar() {
   return (
     <>
       {showBar && (
-        <div className="flex items-center gap-3">
-          <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary shrink-0 px-2">
-            Compare · {items.length}
-          </div>
-          <div className="flex-1 flex gap-2 overflow-x-auto">
-            {items.map((l) => (
-              <div key={l.id} className="shrink-0 flex items-center gap-2 rounded-lg border border-border bg-background/50 pl-2 pr-1 py-1">
-                <img src={l.image_url} alt="" className="w-8 h-8 rounded object-cover" />
-                <div className="min-w-0">
-                  <div className="text-xs font-bold truncate max-w-[120px]">{l.neighborhood}</div>
-                  <div className="text-[10px] text-muted-foreground">{formatPrice(l.price_monthly)}</div>
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[min(96vw,900px)] rounded-2xl border border-primary/40 bg-card/95 backdrop-blur-xl shadow-2xl p-3 animate-fade-up">
+          <div className="flex items-center gap-3">
+            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary shrink-0 px-2">
+              Compare · {items.length}
+            </div>
+            <div className="flex-1 flex gap-2 overflow-x-auto">
+              {items.map((l) => (
+                <div key={l.id} className="shrink-0 flex items-center gap-2 rounded-lg border border-border bg-background/50 pl-2 pr-1 py-1">
+                  <img src={l.image_url} alt="" className="w-8 h-8 rounded object-cover" />
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold truncate max-w-[120px]">{l.neighborhood}</div>
+                    <div className="text-[10px] text-muted-foreground">{formatPrice(l.price_monthly)}</div>
+                  </div>
+                  <button onClick={() => remove(l.id)} aria-label="Remove" className="p-1 hover:text-destructive">
+                    <X className="h-3 w-3" />
+                  </button>
                 </div>
-                <button onClick={() => remove(l.id)} aria-label="Remove" className="p-1 hover:text-destructive">
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            ))}
+              ))}
+            </div>
+            <Button variant="ghost" size="sm" onClick={clear}>Clear</Button>
+            <Button
+              size="sm"
+              disabled={items.length < 2}
+              onClick={() => setOpen(true)}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              <GitCompare className="h-4 w-4 mr-1" /> Compare
+            </Button>
           </div>
-          <Button variant="ghost" size="sm" onClick={clear}>Clear</Button>
-          <Button
-            size="sm"
-            disabled={items.length < 2}
-            onClick={() => setOpen(true)}
-            className="bg-primary text-primary-foreground hover:bg-primary/90"
-          >
-            <GitCompare className="h-4 w-4 mr-1" /> Compare
-          </Button>
         </div>
-      </div>
-      <CompareDialog open={open} onOpenChange={setOpen} />
+      )}
+      <CompareDialog open={open && items.length >= 2} onOpenChange={setOpen} />
     </>
   );
 }
