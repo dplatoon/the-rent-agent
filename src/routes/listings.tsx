@@ -61,7 +61,7 @@ function ListingsPage() {
   }, []);
 
   const update = (patch: Partial<typeof search>) => {
-    navigate({ search: (prev) => ({ ...prev, ...patch, page: patch.page ?? 1 }) });
+    navigate({ search: (prev: typeof search) => ({ ...prev, ...patch, page: patch.page ?? 1 }) });
   };
 
   const filtered = useMemo(() => {
