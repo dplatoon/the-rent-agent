@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, CheckCircle2, Info } from "lucide-react";
 
 type BIPEvent = Event & {
   prompt: () => Promise<void>;
@@ -10,6 +10,7 @@ type BIPEvent = Event & {
 export function InstallButton() {
   const [deferred, setDeferred] = useState<BIPEvent | null>(null);
   const [installed, setInstalled] = useState(false);
+  const [supported, setSupported] = useState<boolean | null>(null);
 
   useEffect(() => {
     const standalone =
@@ -21,6 +22,7 @@ export function InstallButton() {
     const onPrompt = (e: Event) => {
       e.preventDefault();
       setDeferred(e as BIPEvent);
+      setSupported(true);
     };
     const onInstalled = () => {
       setInstalled(true);
@@ -28,27 +30,57 @@ export function InstallButton() {
     };
     window.addEventListener("beforeinstallprompt", onPrompt);
     window.addEventListener("appinstalled", onInstalled);
+
+    // If beforeinstallprompt hasn't fired after a short delay, treat as unsupported.
+    const t = window.setTimeout(() => {
+      setSupported((prev) => (prev === null ? false : prev));
+    }, 2500);
+
     return () => {
       window.removeEventListener("beforeinstallprompt", onPrompt);
       window.removeEventListener("appinstalled", onInstalled);
+      window.clearTimeout(t);
     };
   }, []);
 
-  if (installed || !deferred) return null;
+  if (installed) {
+    return (
+      <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+        App installed
+      </span>
+    );
+  }
 
-  return (
-    <Button
-      size="sm"
-      variant="outline"
-      onClick={async () => {
-        await deferred.prompt();
-        const { outcome } = await deferred.userChoice;
-        if (outcome === "accepted") setDeferred(null);
-      }}
-      className="gap-1.5"
-    >
-      <Download className="h-3.5 w-3.5" />
-      Install
-    </Button>
-  );
+  if (deferred) {
+    return (
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={async () => {
+          await deferred.prompt();
+          const { outcome } = await deferred.userChoice;
+          if (outcome === "accepted") setDeferred(null);
+        }}
+        className="gap-1.5"
+      >
+        <Download className="h-3.5 w-3.5" />
+        Install
+      </Button>
+    );
+  }
+
+  if (supported === false) {
+    return (
+      <span
+        className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground"
+        title="Your browser doesn't support one-click install. On iOS, use Share → Add to Home Screen."
+      >
+        <Info className="h-3.5 w-3.5" />
+        Install not supported
+      </span>
+    );
+  }
+
+  return null;
 }
