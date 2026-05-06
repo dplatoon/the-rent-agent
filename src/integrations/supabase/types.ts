@@ -14,7 +14,181 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      agents: {
+        Row: {
+          avatar_emoji: string
+          bio: string
+          color: string
+          created_at: string
+          greeting: string
+          id: string
+          is_online: boolean
+          map_x: number
+          map_y: number
+          name: string
+          personality_traits: string[]
+          rating: number
+          specialty: string
+          state: string
+          total_chats: number
+        }
+        Insert: {
+          avatar_emoji: string
+          bio: string
+          color: string
+          created_at?: string
+          greeting: string
+          id: string
+          is_online?: boolean
+          map_x: number
+          map_y: number
+          name: string
+          personality_traits?: string[]
+          rating?: number
+          specialty: string
+          state: string
+          total_chats?: number
+        }
+        Update: {
+          avatar_emoji?: string
+          bio?: string
+          color?: string
+          created_at?: string
+          greeting?: string
+          id?: string
+          is_online?: boolean
+          map_x?: number
+          map_y?: number
+          name?: string
+          personality_traits?: string[]
+          rating?: number
+          specialty?: string
+          state?: string
+          total_chats?: number
+        }
+        Relationships: []
+      }
+      conversations: {
+        Row: {
+          agent_id: string
+          created_at: string
+          id: string
+          last_message_at: string
+          message_count: number
+          title: string | null
+          user_id: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          message_count?: number
+          title?: string | null
+          user_id: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          message_count?: number
+          title?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          role: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          role: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bedrooms: number | null
+          budget_max: number | null
+          budget_min: number | null
+          created_at: string
+          daily_chat_count: number
+          daily_chat_reset_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          pet_friendly: boolean | null
+          preferred_state: string | null
+          tier: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bedrooms?: number | null
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string
+          daily_chat_count?: number
+          daily_chat_reset_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          pet_friendly?: boolean | null
+          preferred_state?: string | null
+          tier?: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bedrooms?: number | null
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string
+          daily_chat_count?: number
+          daily_chat_reset_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          pet_friendly?: boolean | null
+          preferred_state?: string | null
+          tier?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
