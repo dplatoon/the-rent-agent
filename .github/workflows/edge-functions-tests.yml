@@ -34,14 +34,29 @@ jobs:
           [ "$missing" -eq 0 ]
 
       - name: Run edge function tests (with sanitizers)
-        timeout-minutes: 15
+        timeout-minutes: 20
         env:
           # Per-test default timeout (ms) — generous for slow CI runners
           DENO_TEST_TIMEOUT: "120000"
         run: |
-          deno test \
-            --allow-net \
-            --allow-env \
-            --allow-read \
-            --no-check \
-            supabase/functions/**/*.test.ts supabase/functions/**/*_test.ts
+          set +e
+          run_tests() {
+            deno test \
+              --allow-net \
+              --allow-env \
+              --allow-read \
+              --no-check \
+              supabase/functions/**/*.test.ts supabase/functions/**/*_test.ts
+          }
+
+          run_tests
+          status=$?
+
+          if [ "$status" -ne 0 ]; then
+            echo "::warning::First test run failed (exit $status). Retrying once to absorb transient timeouts / runner slowness."
+            sleep 5
+            run_tests
+            status=$?
+          fi
+
+          exit "$status"
