@@ -62,6 +62,7 @@ export function InstallButton() {
       e.preventDefault();
       setDeferred(e as BIPEvent);
       setSupported(true);
+      trackPwaEvent("prompt_shown");
     };
     const onInstalled = () => {
       setInstalled(true);
@@ -71,7 +72,7 @@ export function InstallButton() {
         localStorage.setItem("pwa:installedAt", String(Date.now()));
         localStorage.removeItem("pwa:pillDismissedAt");
       } catch {}
-      // Auto-dismiss fallback after 5s (user can still dismiss earlier).
+      trackPwaEvent("installed");
       window.setTimeout(() => setJustInstalled(false), 5000);
     };
     const onStorage = (e: StorageEvent) => {
