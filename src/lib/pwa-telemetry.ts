@@ -99,11 +99,11 @@ const FORBIDDEN_UA_MARKERS = [
   "FxiOS/",
 ];
 
-function looksLikeRawUA(value: string): boolean {
+export function looksLikeRawUA(value: string): boolean {
   return FORBIDDEN_UA_MARKERS.some((m) => value.includes(m));
 }
 
-function looksLikeFullURL(value: string): boolean {
+export function looksLikeFullURL(value: string): boolean {
   // Allow bare origins (scheme + host, optional port). Anything with a path,
   // query, or fragment is treated as a full referrer and scrubbed.
   try {
@@ -118,7 +118,7 @@ function looksLikeFullURL(value: string): boolean {
 // Allowed keys that are permitted to contain bare origins.
 const ORIGIN_ALLOWED_KEYS = new Set(["referrerOrigin", "origin"]);
 
-function sanitizeForTelemetry(value: unknown, key = ""): unknown {
+export function sanitizeForTelemetry(value: unknown, key = ""): unknown {
   if (value == null) return value;
   if (typeof value === "string") {
     if (looksLikeRawUA(value)) return redactUserAgent(value);
@@ -142,7 +142,7 @@ function sanitizeForTelemetry(value: unknown, key = ""): unknown {
   return value;
 }
 
-function assertNoRawPII(payload: unknown): void {
+export function assertNoRawPII(payload: unknown): void {
   const json = JSON.stringify(payload);
   if (!json) return;
   if (looksLikeRawUA(json)) {
