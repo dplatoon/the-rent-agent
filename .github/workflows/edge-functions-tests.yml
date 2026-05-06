@@ -34,6 +34,10 @@ jobs:
           [ "$missing" -eq 0 ]
 
       - name: Run edge function tests (with sanitizers)
+        timeout-minutes: 15
+        env:
+          # Per-test default timeout (ms) — generous for slow CI runners
+          DENO_TEST_TIMEOUT: "120000"
         run: |
           deno test \
             --allow-net \
