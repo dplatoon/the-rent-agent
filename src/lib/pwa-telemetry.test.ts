@@ -97,20 +97,22 @@ describe("pwa-telemetry privacy", () => {
 
   describe("trackPwaEvent end-to-end", () => {
     beforeEach(() => {
-      // jsdom-free env: stub minimal globals
-      (globalThis as any).window = globalThis;
-      (globalThis as any).navigator = {
+      const g = globalThis as any;
+      const set = (k: string, v: unknown) =>
+        Object.defineProperty(g, k, { value: v, configurable: true, writable: true });
+      set("window", g);
+      set("navigator", {
         userAgent: REAL_UA,
         language: "en-US",
         languages: ["en-US"],
-      };
-      (globalThis as any).document = { referrer: "https://ref.test/path?q=1" };
-      (globalThis as any).screen = { width: 390, height: 844 };
-      (globalThis as any).innerWidth = 390;
-      (globalThis as any).innerHeight = 844;
-      (globalThis as any).devicePixelRatio = 2;
-      (globalThis as any).matchMedia = () => ({ matches: false });
-      (globalThis as any).location = { pathname: "/" };
+      });
+      set("document", { referrer: "https://ref.test/path?q=1" });
+      set("screen", { width: 390, height: 844 });
+      set("innerWidth", 390);
+      set("innerHeight", 844);
+      set("devicePixelRatio", 2);
+      set("matchMedia", () => ({ matches: false }));
+      set("location", { pathname: "/" });
     });
 
     it("never inserts raw userAgent or full referrer URLs", () => {
