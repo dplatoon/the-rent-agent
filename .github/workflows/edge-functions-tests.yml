@@ -40,23 +40,68 @@ jobs:
           DENO_TEST_TIMEOUT: "120000"
         run: |
           set +e
+          LOG_FILE="$(mktemp)"
+
           run_tests() {
             deno test \
               --allow-net \
               --allow-env \
               --allow-read \
               --no-check \
-              supabase/functions/**/*.test.ts supabase/functions/**/*_test.ts
+              supabase/functions/**/*.test.ts supabase/functions/**/*_test.ts \
+              2>&1 | tee "$LOG_FILE"
+            # Preserve deno's exit code (not tee's)
+            return "${PIPESTATUS[0]}"
+          }
+
+          # Returns 0 if the failure looks transient (timeout / runner slowness / network blip),
+          # non-zero otherwise. We retry only on transient signals.
+          is_transient_failure() {
+            local code="$1"
+            local log="$2"
+
+            # Exit codes commonly associated with timeouts / signals on Linux runners:
+            #   124 = GNU coreutils `timeout` killed the process
+            #   137 = SIGKILL (128 + 9), often OOM or hard timeout
+            #   143 = SIGTERM (128 + 15), often runner-level cancellation
+            case "$code" in
+              124|137|143) return 0 ;;
+            esac
+
+            # Log-pattern heuristics for Deno test timeouts and transient network errors.
+            # Deliberately narrow — assertion/type/permission failures must NOT match.
+            if grep -qiE \
+              -e 'test .* timed out' \
+              -e 'operation timed out' \
+              -e 'deadline exceeded' \
+              -e 'Connection reset by peer' \
+              -e 'connection closed before message completed' \
+              -e 'error sending request' \
+              -e 'tcp connect error' \
+              -e 'dns error' \
+              -e 'http2 error' \
+              -e 'os error 110' \
+              "$log"; then
+              return 0
+            fi
+
+            return 1
           }
 
           run_tests
           status=$?
 
           if [ "$status" -ne 0 ]; then
-            echo "::warning::First test run failed (exit $status). Retrying once to absorb transient timeouts / runner slowness."
-            sleep 5
-            run_tests
-            status=$?
+            if is_transient_failure "$status" "$LOG_FILE"; then
+              echo "::warning::First test run failed (exit $status) with a transient signal. Retrying once."
+              sleep 5
+              : > "$LOG_FILE"
+              run_tests
+              status=$?
+            else
+              echo "::notice::Test failure (exit $status) does not match transient patterns; not retrying."
+            fi
           fi
 
+          rm -f "$LOG_FILE"
           exit "$status"
