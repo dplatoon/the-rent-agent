@@ -121,7 +121,7 @@ export function InstallButton() {
     try {
       localStorage.setItem("pwa:pillDismissedAt", String(Date.now()));
     } catch {}
-    trackPwaEvent("pill_dismissed");
+    trackPwaEvent("pill_dismissed", buildBaseMeta({ method: "close_button" }));
   };
 
   if (installed) {
