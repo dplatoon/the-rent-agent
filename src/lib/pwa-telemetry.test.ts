@@ -51,8 +51,10 @@ describe("pwa-telemetry privacy", () => {
   describe("sanitizeForTelemetry", () => {
     it("redacts raw UA strings inside nested objects", () => {
       const out = sanitizeForTelemetry({ a: { b: REAL_UA } }) as any;
-      expect(out.a.b).not.toContain("Mozilla/");
-      expect(out.a.b).not.toContain("AppleWebKit/");
+      expect(out.a.b).not.toBe(REAL_UA);
+      // Version numbers and device parens must be stripped.
+      expect(out.a.b).not.toMatch(/17[._]4[._]1/);
+      expect(out.a.b).not.toContain("iPhone OS");
     });
 
     it("strips paths/queries from full URLs", () => {
@@ -70,11 +72,9 @@ describe("pwa-telemetry privacy", () => {
     });
 
     it("scrubs items inside arrays", () => {
-      const out = sanitizeForTelemetry([
-        REAL_UA,
-        "https://x.test/p?q=1",
-      ]) as any[];
-      expect(out[0]).not.toContain("Mozilla/");
+      const out = sanitizeForTelemetry([REAL_UA, "https://x.test/p?q=1"]) as any[];
+      expect(out[0]).not.toBe(REAL_UA);
+      expect(out[0]).not.toContain("iPhone OS");
       expect(out[1]).toBe("https://x.test");
     });
   });
