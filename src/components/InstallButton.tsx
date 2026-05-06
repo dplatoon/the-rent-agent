@@ -174,7 +174,7 @@ export function InstallButton() {
   if (isIOS) {
     const inApp = detectIOSInAppBrowser();
     return (
-      <Popover onOpenChange={(o) => { if (o) trackPwaEvent(inApp ? "ios_open_in_safari" : "ios_help_opened"); }}>
+      <Popover onOpenChange={(o) => { if (o) trackPwaEvent(inApp ? "ios_open_in_safari" : "ios_help_opened", buildBaseMeta({ inApp })); }}>
         <PopoverTrigger asChild>
           <Button size="sm" variant="outline" className="gap-1.5">
             <Share className="h-3.5 w-3.5" />
