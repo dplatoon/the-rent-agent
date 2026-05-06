@@ -115,24 +115,30 @@ describe("pwa-telemetry privacy", () => {
       set("location", { pathname: "/" });
     });
 
-    it("never inserts raw userAgent or full referrer URLs", () => {
-      // Even if a caller tries to leak data via meta, it must be sanitized
-      // (or the event dropped). Here we test the safe-meta path.
-      trackPwaEvent("prompt_shown", { note: "user opened install" });
-
-      expect(inserted.length).toBe(1);
-      const json = JSON.stringify(inserted[0]);
-
-      // No raw UA markers anywhere in the payload (including device.userAgent).
-      expect(json).not.toMatch(/Mozilla\//);
-      expect(json).not.toMatch(/AppleWebKit\//);
-      expect(json).not.toMatch(/Safari\/\d/);
-
-      // No full URLs with paths/queries (referrer must be reduced to origin).
-      const urls = json.match(/https?:\/\/[^\s"']+/g) ?? [];
-      for (const u of urls) {
-        expect(looksLikeFullURL(u)).toBe(false);
+    const assertSafe = () => {
+      for (const row of inserted) {
+        const json = JSON.stringify(row);
+        expect(json).not.toMatch(/Mozilla\//);
+        expect(json).not.toMatch(/AppleWebKit\//);
+        expect(json).not.toMatch(/Safari\/\d/);
+        const urls = json.match(/https?:\/\/[^\s"']+/g) ?? [];
+        for (const u of urls) {
+          expect(looksLikeFullURL(u)).toBe(false);
+        }
       }
+    };
+
+    it("never inserts raw userAgent or full referrer URLs (normal call)", () => {
+      trackPwaEvent("prompt_shown", { note: "user opened install" });
+      assertSafe();
+    });
+
+    it("never inserts raw values when caller tries to leak via meta", () => {
+      trackPwaEvent("prompt_shown", {
+        leakedUA: REAL_UA,
+        leakedRef: "https://evil.test/secret?token=abc",
+      });
+      assertSafe();
     });
 
     it("drops events when caller tries to leak raw UA via meta", () => {
