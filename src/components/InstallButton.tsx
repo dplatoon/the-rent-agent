@@ -6,6 +6,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { trackPwaEvent } from "@/lib/pwa-telemetry";
 
 type BIPEvent = Event & {
   prompt: () => Promise<void>;
