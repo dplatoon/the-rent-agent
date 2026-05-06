@@ -221,6 +221,21 @@ function AgentChat() {
           <Link to="/auth" className="text-primary underline">Sign in</Link> to start chatting with {agent.name}.
         </p>
       )}
+
+      {agentListings.length > 0 && (
+        <section className="mt-12">
+          <div className="flex items-end justify-between mb-4">
+            <div>
+              <div className="font-mono text-[10px] tracking-[0.25em] text-primary mb-1">// {agent.name.toUpperCase()}'S PICKS</div>
+              <h2 className="font-display text-2xl font-bold">Hand-picked in {agent.state}</h2>
+            </div>
+            <Link to="/listings" className="text-sm text-primary hover:underline">All listings →</Link>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-4">
+            {agentListings.map((l) => <ListingCard key={l.id} listing={l} />)}
+          </div>
+        </section>
+      )}
     </main>
   );
 }
