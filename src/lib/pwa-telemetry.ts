@@ -118,7 +118,7 @@ export function looksLikeFullURL(value: string): boolean {
 // Allowed keys that are permitted to contain bare origins.
 const ORIGIN_ALLOWED_KEYS = new Set(["referrerOrigin", "origin"]);
 
-function sanitizeForTelemetry(value: unknown, key = ""): unknown {
+export function sanitizeForTelemetry(value: unknown, key = ""): unknown {
   if (value == null) return value;
   if (typeof value === "string") {
     if (looksLikeRawUA(value)) return redactUserAgent(value);
