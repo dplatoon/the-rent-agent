@@ -22,6 +22,31 @@ function detectPlatform(): string {
   return "other";
 }
 
+function collectDeviceInfo() {
+  if (typeof window === "undefined") return {};
+  const nav = navigator as Navigator & { connection?: { effectiveType?: string } };
+  return {
+    userAgent: navigator.userAgent.slice(0, 500),
+    language: navigator.language,
+    languages: navigator.languages?.slice(0, 5),
+    screen: {
+      width: window.screen?.width,
+      height: window.screen?.height,
+    },
+    viewport: {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    },
+    devicePixelRatio: window.devicePixelRatio,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    orientation:
+      window.matchMedia?.("(orientation: portrait)").matches ? "portrait" : "landscape",
+    connection: nav.connection?.effectiveType,
+    referrer: document.referrer || undefined,
+    path: window.location.pathname,
+  };
+}
+
 export function trackPwaEvent(event: PwaEvent, meta?: Record<string, unknown>) {
   if (typeof window === "undefined") return;
   try {
@@ -29,7 +54,7 @@ export function trackPwaEvent(event: PwaEvent, meta?: Record<string, unknown>) {
       event,
       platform: detectPlatform(),
       user_agent: navigator.userAgent.slice(0, 500),
-      meta: (meta ?? null) as never,
+      meta: { device: collectDeviceInfo(), ...(meta ?? {}) } as never,
     });
   } catch {
     // Telemetry must never break the UX
