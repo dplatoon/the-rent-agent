@@ -99,7 +99,7 @@ const FORBIDDEN_UA_MARKERS = [
   "FxiOS/",
 ];
 
-function looksLikeRawUA(value: string): boolean {
+export function looksLikeRawUA(value: string): boolean {
   return FORBIDDEN_UA_MARKERS.some((m) => value.includes(m));
 }
 
