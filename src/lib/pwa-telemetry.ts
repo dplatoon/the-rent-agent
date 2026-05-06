@@ -142,7 +142,7 @@ export function sanitizeForTelemetry(value: unknown, key = ""): unknown {
   return value;
 }
 
-function assertNoRawPII(payload: unknown): void {
+export function assertNoRawPII(payload: unknown): void {
   const json = JSON.stringify(payload);
   if (!json) return;
   if (looksLikeRawUA(json)) {
