@@ -39,8 +39,23 @@ export function InstallButton() {
   const [supported, setSupported] = useState<boolean | null>(null);
   const [isIOS, setIsIOS] = useState(false);
 
+  // Capture context for telemetry — kept in a ref-like object via state setters above.
+  const buildBaseMeta = (extra?: Record<string, unknown>) => ({
+    isIOS,
+    inApp: isIOS ? detectIOSInAppBrowser() : false,
+    supported,
+    installed,
+    standalone:
+      typeof window !== "undefined" &&
+      (window.matchMedia?.("(display-mode: standalone)").matches ||
+        // @ts-expect-error iOS Safari
+        window.navigator.standalone === true),
+    ...(extra ?? {}),
+  });
+
   useEffect(() => {
-    setIsIOS(detectIOS());
+    const ios = detectIOS();
+    setIsIOS(ios);
 
     const standalone =
       window.matchMedia?.("(display-mode: standalone)").matches ||
@@ -48,8 +63,6 @@ export function InstallButton() {
       window.navigator.standalone === true;
     if (standalone) {
       setInstalled(true);
-      // On load while installed, only show the pill if a recent install
-      // happened and the user hasn't dismissed it.
       try {
         const installedAt = Number(localStorage.getItem("pwa:installedAt") || 0);
         const dismissedAt = Number(localStorage.getItem("pwa:pillDismissedAt") || 0);
@@ -62,7 +75,12 @@ export function InstallButton() {
       e.preventDefault();
       setDeferred(e as BIPEvent);
       setSupported(true);
-      trackPwaEvent("prompt_shown");
+      trackPwaEvent("prompt_shown", {
+        isIOS: ios,
+        inApp: ios ? detectIOSInAppBrowser() : false,
+        supported: true,
+        standalone,
+      });
     };
     const onInstalled = () => {
       setInstalled(true);
@@ -72,7 +90,11 @@ export function InstallButton() {
         localStorage.setItem("pwa:installedAt", String(Date.now()));
         localStorage.removeItem("pwa:pillDismissedAt");
       } catch {}
-      trackPwaEvent("installed");
+      trackPwaEvent("installed", {
+        isIOS: ios,
+        inApp: ios ? detectIOSInAppBrowser() : false,
+        source: standalone ? "already_standalone" : "appinstalled_event",
+      });
       window.setTimeout(() => setJustInstalled(false), 5000);
     };
     const onStorage = (e: StorageEvent) => {
