@@ -157,7 +157,10 @@ export function InstallButton() {
         onClick={async () => {
           await deferred.prompt();
           const { outcome } = await deferred.userChoice;
-          trackPwaEvent(outcome === "accepted" ? "prompt_accepted" : "prompt_dismissed");
+          trackPwaEvent(
+            outcome === "accepted" ? "prompt_accepted" : "prompt_dismissed",
+            buildBaseMeta({ outcome }),
+          );
           if (outcome === "accepted") setDeferred(null);
         }}
         className="gap-1.5"
