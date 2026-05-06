@@ -143,12 +143,13 @@ export function InstallButton() {
   }
 
   if (isIOS) {
+    const inApp = detectIOSInAppBrowser();
     return (
       <Popover>
         <PopoverTrigger asChild>
           <Button size="sm" variant="outline" className="gap-1.5">
             <Share className="h-3.5 w-3.5" />
-            Install on iOS
+            {inApp ? "Open in Safari" : "Install on iOS"}
           </Button>
         </PopoverTrigger>
         <PopoverContent align="end" className="w-72 text-sm">
