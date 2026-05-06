@@ -44,7 +44,9 @@ export function InstallButton() {
     };
     const onInstalled = () => {
       setInstalled(true);
+      setJustInstalled(true);
       setDeferred(null);
+      window.setTimeout(() => setJustInstalled(false), 5000);
     };
     window.addEventListener("beforeinstallprompt", onPrompt);
     window.addEventListener("appinstalled", onInstalled);
