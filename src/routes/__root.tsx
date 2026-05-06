@@ -1,6 +1,7 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import appCss from "../styles.css?url";
 import { SiteHeader } from "@/components/SiteHeader";
+import { CompareBar } from "@/components/CompareBar";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -50,6 +51,7 @@ function RootComponent() {
     <>
       <SiteHeader />
       <Outlet />
+      <CompareBar />
       <Toaster theme="dark" />
     </>
   );
