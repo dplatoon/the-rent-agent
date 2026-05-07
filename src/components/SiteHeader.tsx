@@ -29,6 +29,7 @@ export function SiteHeader() {
           <Link to="/listings" className="hover:text-primary transition" activeProps={{ className: "text-primary" }}>Listings</Link>
           <Link to="/map" className="hover:text-primary transition" activeProps={{ className: "text-primary" }}>Agents</Link>
           {authed && <Link to="/saved" className="hover:text-primary transition" activeProps={{ className: "text-primary" }}>Saved</Link>}
+          {authed && <Link to="/imports" className="hover:text-primary transition" activeProps={{ className: "text-primary" }}>Imports</Link>}
           <Link to="/pricing" className="hover:text-primary transition" activeProps={{ className: "text-primary" }}>Pricing</Link>
           <Link to="/about" className="hover:text-primary transition" activeProps={{ className: "text-primary" }}>About</Link>
         </nav>

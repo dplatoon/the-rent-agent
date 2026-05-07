@@ -2,3 +2,6 @@ project_id = "trakpcquqrdiubnglxdi"
 
 [functions.agent-chat]
 verify_jwt = false
+
+[functions.agent-draft]
+verify_jwt = false

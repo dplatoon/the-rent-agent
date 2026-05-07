@@ -10,19 +10,27 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SavedRouteImport } from './routes/saved'
+import { Route as RemindersRouteImport } from './routes/reminders'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as MapRouteImport } from './routes/map'
 import { Route as ListingsRouteImport } from './routes/listings'
+import { Route as ImportsRouteImport } from './routes/imports'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ListingsIdRouteImport } from './routes/listings_.$id'
 import { Route as AgentStateRouteImport } from './routes/agent.$state'
+import { Route as ImportsShareTokenRouteImport } from './routes/imports.share.$token'
 
 const SavedRoute = SavedRouteImport.update({
   id: '/saved',
   path: '/saved',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RemindersRoute = RemindersRouteImport.update({
+  id: '/reminders',
+  path: '/reminders',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PricingRoute = PricingRouteImport.update({
@@ -38,6 +46,11 @@ const MapRoute = MapRouteImport.update({
 const ListingsRoute = ListingsRouteImport.update({
   id: '/listings',
   path: '/listings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ImportsRoute = ImportsRouteImport.update({
+  id: '/imports',
+  path: '/imports',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -70,30 +83,41 @@ const AgentStateRoute = AgentStateRouteImport.update({
   path: '/agent/$state',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ImportsShareTokenRoute = ImportsShareTokenRouteImport.update({
+  id: '/share/$token',
+  path: '/share/$token',
+  getParentRoute: () => ImportsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/imports': typeof ImportsRouteWithChildren
   '/listings': typeof ListingsRoute
   '/map': typeof MapRoute
   '/pricing': typeof PricingRoute
+  '/reminders': typeof RemindersRoute
   '/saved': typeof SavedRoute
   '/agent/$state': typeof AgentStateRoute
   '/listings/$id': typeof ListingsIdRoute
+  '/imports/share/$token': typeof ImportsShareTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/imports': typeof ImportsRouteWithChildren
   '/listings': typeof ListingsRoute
   '/map': typeof MapRoute
   '/pricing': typeof PricingRoute
+  '/reminders': typeof RemindersRoute
   '/saved': typeof SavedRoute
   '/agent/$state': typeof AgentStateRoute
   '/listings/$id': typeof ListingsIdRoute
+  '/imports/share/$token': typeof ImportsShareTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -101,12 +125,15 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/imports': typeof ImportsRouteWithChildren
   '/listings': typeof ListingsRoute
   '/map': typeof MapRoute
   '/pricing': typeof PricingRoute
+  '/reminders': typeof RemindersRoute
   '/saved': typeof SavedRoute
   '/agent/$state': typeof AgentStateRoute
   '/listings_/$id': typeof ListingsIdRoute
+  '/imports/share/$token': typeof ImportsShareTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -115,36 +142,45 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/dashboard'
+    | '/imports'
     | '/listings'
     | '/map'
     | '/pricing'
+    | '/reminders'
     | '/saved'
     | '/agent/$state'
     | '/listings/$id'
+    | '/imports/share/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
     | '/auth'
     | '/dashboard'
+    | '/imports'
     | '/listings'
     | '/map'
     | '/pricing'
+    | '/reminders'
     | '/saved'
     | '/agent/$state'
     | '/listings/$id'
+    | '/imports/share/$token'
   id:
     | '__root__'
     | '/'
     | '/about'
     | '/auth'
     | '/dashboard'
+    | '/imports'
     | '/listings'
     | '/map'
     | '/pricing'
+    | '/reminders'
     | '/saved'
     | '/agent/$state'
     | '/listings_/$id'
+    | '/imports/share/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -152,9 +188,11 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRoute
   DashboardRoute: typeof DashboardRoute
+  ImportsRoute: typeof ImportsRouteWithChildren
   ListingsRoute: typeof ListingsRoute
   MapRoute: typeof MapRoute
   PricingRoute: typeof PricingRoute
+  RemindersRoute: typeof RemindersRoute
   SavedRoute: typeof SavedRoute
   AgentStateRoute: typeof AgentStateRoute
   ListingsIdRoute: typeof ListingsIdRoute
@@ -167,6 +205,13 @@ declare module '@tanstack/react-router' {
       path: '/saved'
       fullPath: '/saved'
       preLoaderRoute: typeof SavedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reminders': {
+      id: '/reminders'
+      path: '/reminders'
+      fullPath: '/reminders'
+      preLoaderRoute: typeof RemindersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pricing': {
@@ -188,6 +233,13 @@ declare module '@tanstack/react-router' {
       path: '/listings'
       fullPath: '/listings'
       preLoaderRoute: typeof ListingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/imports': {
+      id: '/imports'
+      path: '/imports'
+      fullPath: '/imports'
+      preLoaderRoute: typeof ImportsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -232,17 +284,37 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgentStateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/imports/share/$token': {
+      id: '/imports/share/$token'
+      path: '/share/$token'
+      fullPath: '/imports/share/$token'
+      preLoaderRoute: typeof ImportsShareTokenRouteImport
+      parentRoute: typeof ImportsRoute
+    }
   }
 }
+
+interface ImportsRouteChildren {
+  ImportsShareTokenRoute: typeof ImportsShareTokenRoute
+}
+
+const ImportsRouteChildren: ImportsRouteChildren = {
+  ImportsShareTokenRoute: ImportsShareTokenRoute,
+}
+
+const ImportsRouteWithChildren =
+  ImportsRoute._addFileChildren(ImportsRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AuthRoute: AuthRoute,
   DashboardRoute: DashboardRoute,
+  ImportsRoute: ImportsRouteWithChildren,
   ListingsRoute: ListingsRoute,
   MapRoute: MapRoute,
   PricingRoute: PricingRoute,
+  RemindersRoute: RemindersRoute,
   SavedRoute: SavedRoute,
   AgentStateRoute: AgentStateRoute,
   ListingsIdRoute: ListingsIdRoute,

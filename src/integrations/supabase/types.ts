@@ -106,6 +106,54 @@ export type Database = {
           },
         ]
       }
+      external_listings: {
+        Row: {
+          bathrooms: number | null
+          bedrooms: number | null
+          created_at: string
+          id: string
+          location: string | null
+          notes: string | null
+          price_monthly: number | null
+          share_token: string
+          source: string
+          title: string | null
+          updated_at: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          bathrooms?: number | null
+          bedrooms?: number | null
+          created_at?: string
+          id?: string
+          location?: string | null
+          notes?: string | null
+          price_monthly?: number | null
+          share_token?: string
+          source?: string
+          title?: string | null
+          updated_at?: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          bathrooms?: number | null
+          bedrooms?: number | null
+          created_at?: string
+          id?: string
+          location?: string | null
+          notes?: string | null
+          price_monthly?: number | null
+          share_token?: string
+          source?: string
+          title?: string | null
+          updated_at?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       listings: {
         Row: {
           agent_id: string
@@ -284,6 +332,50 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      reminders: {
+        Row: {
+          created_at: string
+          done: boolean
+          due_at: string
+          external_listing_id: string | null
+          id: string
+          notes: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          done?: boolean
+          due_at: string
+          external_listing_id?: string | null
+          id?: string
+          notes?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          done?: boolean
+          due_at?: string
+          external_listing_id?: string | null
+          id?: string
+          notes?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminders_external_listing_id_fkey"
+            columns: ["external_listing_id"]
+            isOneToOne: false
+            referencedRelation: "external_listings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       saved_listings: {
         Row: {
