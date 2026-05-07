@@ -267,6 +267,8 @@ export type Database = {
           created_at: string
           daily_chat_count: number
           daily_chat_reset_at: string
+          daily_draft_count: number
+          daily_draft_reset_at: string
           email: string | null
           full_name: string | null
           id: string
@@ -283,6 +285,8 @@ export type Database = {
           created_at?: string
           daily_chat_count?: number
           daily_chat_reset_at?: string
+          daily_draft_count?: number
+          daily_draft_reset_at?: string
           email?: string | null
           full_name?: string | null
           id: string
@@ -299,6 +303,8 @@ export type Database = {
           created_at?: string
           daily_chat_count?: number
           daily_chat_reset_at?: string
+          daily_draft_count?: number
+          daily_draft_reset_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
@@ -421,6 +427,14 @@ export type Database = {
     }
     Functions: {
       consume_daily_chat: {
+        Args: { _limit?: number; _user_id: string }
+        Returns: {
+          allowed: boolean
+          remaining: number
+          tier: string
+        }[]
+      }
+      consume_daily_draft: {
         Args: { _limit?: number; _user_id: string }
         Returns: {
           allowed: boolean

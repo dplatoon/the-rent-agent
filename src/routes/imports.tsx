@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { draftAgentMessage } from "@/lib/agent-draft.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -139,31 +141,31 @@ function ImportsPage() {
     });
   };
 
+  const draftFn = useServerFn(draftAgentMessage);
+
   const runDraft = async (kind: DraftKind) => {
     const ids = [...selected];
     if (ids.length === 0) { toast.error("Select at least one listing"); return; }
     if (kind === "compare" && ids.length < 2) { toast.error("Pick 2-4 to compare"); return; }
     setDraftOpen(kind); setDraftText(""); setDrafting(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { navigate({ to: "/auth" }); return; }
-      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/agent-draft`;
-      const r = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
-        body: JSON.stringify({ kind, listing_ids: ids }),
-      });
-      const j = await r.json();
+      const r = await draftFn({ data: { kind, listing_ids: ids } });
       if (!r.ok) {
-        if (r.status === 429) toast.error("Rate limited. Try again shortly.");
-        else if (r.status === 402) toast.error("AI credits exhausted.");
-        else toast.error(j.error || "Failed");
+        if (r.error === "rate_limit") toast.error("Rate limited. Try again shortly.");
+        else if (r.error === "payment_required") toast.error("AI credits exhausted.");
+        else if (r.error === "quota_exceeded") toast.error("Daily draft limit reached. Upgrade for more.");
+        else if (r.error === "not_found") toast.error("Listing not found.");
+        else toast.error("Failed to draft message");
         setDraftOpen(null);
         return;
       }
-      setDraftText(j.text || "");
+      setDraftText(r.text || "");
+      if (typeof r.remaining === "number" && r.tier === "free" && r.remaining <= 3) {
+        toast.message(`${r.remaining} drafts left today`);
+      }
     } catch (e: any) {
-      toast.error(e.message); setDraftOpen(null);
+      toast.error(e?.message || "Failed");
+      setDraftOpen(null);
     } finally { setDrafting(false); }
   };
 
