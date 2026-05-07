@@ -319,6 +319,85 @@ function ImportsPage() {
           </div>
         </div>
       )}
+
+      {/* Share settings dialog */}
+      <Dialog open={!!shareItem} onOpenChange={(o) => !o && setShareItem(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Share2 className="h-4 w-4 text-primary" /> Share listing</DialogTitle>
+            <DialogDescription>
+              Anyone with the link can view this listing. Set an expiration and choose what's visible.
+            </DialogDescription>
+          </DialogHeader>
+
+          {shareItem && (
+            <div className="space-y-4">
+              {/* Link */}
+              <div className="flex gap-2">
+                <Input
+                  readOnly
+                  value={`${typeof window !== "undefined" ? window.location.origin : ""}/imports/share/${shareItem.share_token}`}
+                  className="font-mono text-xs"
+                />
+                <Button size="sm" variant="outline" onClick={() => copyShare(shareItem.share_token)}>
+                  <Copy className="h-3 w-3" /> Copy
+                </Button>
+              </div>
+
+              {/* Expiry */}
+              <div>
+                <Label className="text-xs font-mono text-muted-foreground tracking-wider inline-flex items-center gap-1">
+                  <Clock className="h-3 w-3" /> EXPIRES
+                </Label>
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {[
+                    { v: "1h", l: "1 hour" },
+                    { v: "24h", l: "24 hours" },
+                    { v: "7d", l: "7 days" },
+                    { v: "30d", l: "30 days" },
+                    { v: "never", l: "Never" },
+                  ].map((o) => (
+                    <button
+                      key={o.v}
+                      type="button"
+                      onClick={() => setShareExpiry(o.v)}
+                      className={`text-xs px-2.5 py-1 rounded border transition ${shareExpiry === o.v ? "bg-primary text-primary-foreground border-primary" : "border-border hover:border-primary/40"}`}
+                    >
+                      {o.l}
+                    </button>
+                  ))}
+                </div>
+                {shareItem.share_expires_at && (
+                  <p className="text-[11px] text-muted-foreground mt-1.5">
+                    Currently expires {new Date(shareItem.share_expires_at).toLocaleString()}
+                  </p>
+                )}
+              </div>
+
+              {/* Mask sensitive */}
+              <div className="flex items-start justify-between gap-3 rounded-lg border border-border p-3">
+                <div className="flex-1">
+                  <Label htmlFor="mask-toggle" className="font-medium inline-flex items-center gap-1.5">
+                    {shareMask ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                    Hide sensitive details
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Hides notes, the original listing URL, and reduces the address to city only.
+                  </p>
+                </div>
+                <Switch id="mask-toggle" checked={shareMask} onCheckedChange={setShareMask} />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <Button variant="ghost" size="sm" onClick={() => setShareItem(null)}>Cancel</Button>
+                <Button size="sm" onClick={saveShareSettings} disabled={savingShare} className="bg-primary text-primary-foreground hover:bg-primary/90">
+                  {savingShare ? "Saving…" : "Save"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
