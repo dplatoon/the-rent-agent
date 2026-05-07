@@ -69,28 +69,58 @@ export async function listImports(): Promise<ExternalListing[]> {
   return (data ?? []) as ExternalListing[];
 }
 
+export type SharedListing = {
+  id: string;
+  source: ExternalSource;
+  title: string | null;
+  price_monthly: number | null;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  location: string | null;
+  notes: string | null;
+  url: string | null;
+  share_expires_at: string | null;
+  share_mask_sensitive: boolean;
+  created_at: string | null;
+};
+
 export type SharedFetchResult =
-  | { status: "ok"; listing: ExternalListing }
+  | { status: "ok"; listing: SharedListing }
   | { status: "expired"; expiredAt: string }
   | { status: "missing" };
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function fetchSharedImport(token: string): Promise<SharedFetchResult> {
-  const { data } = await supabase
-    .from("external_listings")
-    .select("*")
-    .eq("share_token", token)
-    .maybeSingle();
-  if (!data) return { status: "missing" };
-  const listing = data as ExternalListing;
-  if (listing.share_expires_at && new Date(listing.share_expires_at).getTime() < Date.now()) {
-    return { status: "expired", expiredAt: listing.share_expires_at };
-  }
-  return { status: "ok", listing };
+  if (!UUID_RE.test(token)) return { status: "missing" };
+  const { data, error } = await supabase.rpc("get_shared_listing", { _token: token });
+  if (error || !data || data.length === 0) return { status: "missing" };
+  const row = data[0] as any;
+  if (row.expired) return { status: "expired", expiredAt: row.share_expires_at };
+  return {
+    status: "ok",
+    listing: {
+      id: row.id,
+      source: row.source as ExternalSource,
+      title: row.title,
+      price_monthly: row.price_monthly,
+      bedrooms: row.bedrooms,
+      bathrooms: row.bathrooms,
+      location: row.location,
+      notes: row.notes,
+      url: row.url,
+      share_expires_at: row.share_expires_at,
+      share_mask_sensitive: row.share_mask_sensitive,
+      created_at: row.created_at,
+    },
+  };
 }
 
-export function maskSensitive(l: ExternalListing): ExternalListing {
-  if (!l.share_mask_sensitive) return l;
-  // Drop notes; reduce location to last comma-segment (city/region only)
-  const loc = l.location?.split(",").map((s) => s.trim()).filter(Boolean).slice(-1)[0] ?? null;
-  return { ...l, notes: null, location: loc };
+export function isSafeHttpUrl(s: string): boolean {
+  try {
+    const u = new URL(s);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
 }
