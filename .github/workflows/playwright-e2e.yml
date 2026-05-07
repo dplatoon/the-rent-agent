@@ -65,7 +65,8 @@ jobs:
           retention-days: ${{ env.TRACE_RETENTION_DAYS }}
 
       - name: Upload Playwright videos (shard ${{ matrix.shard }})
-        if: always()
+        if: failure()
+        id: upload-videos
         uses: actions/upload-artifact@v4
         with:
           name: playwright-videos-shard-${{ matrix.shard }}
