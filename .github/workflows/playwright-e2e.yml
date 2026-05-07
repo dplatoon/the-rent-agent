@@ -3,6 +3,12 @@ name: Playwright E2E
 on:
   push:
   pull_request:
+  workflow_dispatch:
+    inputs:
+      trace_retention_days:
+        description: "Days to retain Playwright trace/screenshot artifacts"
+        required: false
+        default: "14"
 
 jobs:
   e2e:
@@ -15,6 +21,7 @@ jobs:
         shard: [1, 2, 3, 4]
     env:
       PLAYWRIGHT_BASE_URL: ${{ vars.PLAYWRIGHT_BASE_URL || 'https://the-rent-agent.lovable.app' }}
+      TRACE_RETENTION_DAYS: ${{ inputs.trace_retention_days || vars.PLAYWRIGHT_TRACE_RETENTION_DAYS || '14' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -50,7 +57,7 @@ jobs:
           name: playwright-traces-shard-${{ matrix.shard }}
           path: test-results/**/trace*.zip
           if-no-files-found: ignore
-          retention-days: 14
+          retention-days: ${{ env.TRACE_RETENTION_DAYS }}
 
       - name: Print trace links
         if: always() && steps.upload-traces.outputs.artifact-url != ''
