@@ -115,6 +115,8 @@ export type Database = {
           location: string | null
           notes: string | null
           price_monthly: number | null
+          share_expires_at: string | null
+          share_mask_sensitive: boolean
           share_token: string
           source: string
           title: string | null
@@ -130,6 +132,8 @@ export type Database = {
           location?: string | null
           notes?: string | null
           price_monthly?: number | null
+          share_expires_at?: string | null
+          share_mask_sensitive?: boolean
           share_token?: string
           source?: string
           title?: string | null
@@ -145,6 +149,8 @@ export type Database = {
           location?: string | null
           notes?: string | null
           price_monthly?: number | null
+          share_expires_at?: string | null
+          share_mask_sensitive?: boolean
           share_token?: string
           source?: string
           title?: string | null
