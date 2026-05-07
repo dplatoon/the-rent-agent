@@ -55,6 +55,8 @@ export type ExternalListing = {
   location: string | null;
   notes: string | null;
   share_token: string;
+  share_expires_at: string | null;
+  share_mask_sensitive: boolean;
   created_at: string;
 };
 
@@ -67,11 +69,28 @@ export async function listImports(): Promise<ExternalListing[]> {
   return (data ?? []) as ExternalListing[];
 }
 
-export async function fetchSharedImport(token: string): Promise<ExternalListing | null> {
+export type SharedFetchResult =
+  | { status: "ok"; listing: ExternalListing }
+  | { status: "expired"; expiredAt: string }
+  | { status: "missing" };
+
+export async function fetchSharedImport(token: string): Promise<SharedFetchResult> {
   const { data } = await supabase
     .from("external_listings")
     .select("*")
     .eq("share_token", token)
     .maybeSingle();
-  return (data as ExternalListing) ?? null;
+  if (!data) return { status: "missing" };
+  const listing = data as ExternalListing;
+  if (listing.share_expires_at && new Date(listing.share_expires_at).getTime() < Date.now()) {
+    return { status: "expired", expiredAt: listing.share_expires_at };
+  }
+  return { status: "ok", listing };
+}
+
+export function maskSensitive(l: ExternalListing): ExternalListing {
+  if (!l.share_mask_sensitive) return l;
+  // Drop notes; reduce location to last comma-segment (city/region only)
+  const loc = l.location?.split(",").map((s) => s.trim()).filter(Boolean).slice(-1)[0] ?? null;
+  return { ...l, notes: null, location: loc };
 }
