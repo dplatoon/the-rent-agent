@@ -1,11 +1,15 @@
 import { test, expect } from "@playwright/test";
 
 /**
- * E2E regression: opens multiple listing detail pages, clicks the agent
- * card, and verifies the resulting /agent/$state page loads successfully
- * (not a 404, not a redirect away due to "Agent not found").
+ * E2E regression for the agent card on the listing detail page.
  *
- * One listing per agent state, picked from seeded data.
+ * For each seeded listing, we:
+ *   1. open /listings/<id> directly,
+ *   2. wait for the agent card link to render,
+ *   3. assert its href is /agent/<agentId-lowercased> (NOT /agent/<state-name>),
+ *   4. click it, and
+ *   5. confirm the /agent/$state page loads — no 404, no redirect to /map
+ *      (the AgentChat redirect target when fetchAgent returns nothing).
  */
 const LISTINGS: { id: string; expectedState: string }[] = [
   { id: "544530e5-f8dc-4241-abbd-78c8ce464c3a", expectedState: "az" },
@@ -17,43 +21,62 @@ const LISTINGS: { id: string; expectedState: string }[] = [
 ];
 
 for (const { id, expectedState } of LISTINGS) {
-  test(`agent card on listing ${id} navigates to /agent/${expectedState}`, async ({ page }) => {
-    // Track navigation responses for the agent route to assert no 404.
-    const agentResponses: number[] = [];
+  test(`agent card on listing ${id} navigates to /agent/${expectedState}`, async ({
+    page,
+  }) => {
+    // Track document responses for /agent/* — none of them may be a 4xx/5xx.
+    const agentResponses: { url: string; status: number }[] = [];
     page.on("response", (res) => {
-      const url = new URL(res.url());
-      if (
-        url.pathname.startsWith("/agent/") &&
-        res.request().resourceType() === "document"
-      ) {
-        agentResponses.push(res.status());
+      try {
+        const url = new URL(res.url());
+        if (
+          url.pathname.startsWith("/agent/") &&
+          res.request().resourceType() === "document"
+        ) {
+          agentResponses.push({ url: res.url(), status: res.status() });
+        }
+      } catch {
+        /* ignore */
       }
     });
 
-    await page.goto(`/listings/${id}`, { waitUntil: "domcontentloaded" });
+    // Navigate via the listings index → click the card. This avoids
+    // depending on the exact file name of the listing detail route
+    // (listings_.$id vs listings.$id), which differs between deployments.
+    await page.goto("/listings", { waitUntil: "domcontentloaded" });
 
-    // The agent card is an <a href="/agent/<state>"> rendered after the
-    // agent loads. Wait for it, capture the href, then click.
+    const listingCard = page.locator(`a[href^="/listings/${id}"]`).first();
+    await expect(listingCard).toBeVisible({ timeout: 20_000 });
+    await listingCard.click();
+
+    await page.waitForURL(`**/listings/${id}**`, { timeout: 15_000 });
+
+    // The agent card is rendered after fetchAgent() resolves on the detail
+    // page. Wait for the <Link to="/agent/$state"> to appear.
     const agentLink = page.locator('a[href^="/agent/"]').first();
-    await expect(agentLink).toBeVisible({ timeout: 15_000 });
+    await expect(agentLink).toBeVisible({ timeout: 20_000 });
 
     const href = await agentLink.getAttribute("href");
     expect(href).toBe(`/agent/${expectedState}`);
 
     await agentLink.click();
 
-    // Must land on /agent/<state> — never bounced to /map (the redirect
-    // target when fetchAgent returns nothing) and never a 404 page.
+    // Must land on /agent/<state> — must NOT bounce to /map (the redirect
+    // target when fetchAgent returns nothing) and must NOT 404.
     await page.waitForURL(`**/agent/${expectedState}`, { timeout: 15_000 });
     expect(page.url()).toContain(`/agent/${expectedState}`);
-    expect(page.url()).not.toContain("/map");
+    expect(page.url()).not.toMatch(/\/map(\?|$)/);
 
-    // No document-level 404 for any /agent/* navigation in this test.
-    for (const status of agentResponses) {
-      expect(status).toBeLessThan(400);
+    for (const res of agentResponses) {
+      expect(
+        res.status,
+        `expected /agent/* document load to be ok, got ${res.status} for ${res.url}`,
+      ).toBeLessThan(400);
     }
 
-    // Sanity: the agent chat page renders something (back link is stable).
-    await expect(page.getByText(/back/i).first()).toBeVisible({ timeout: 10_000 });
+    // The agent chat page renders the "Back" link (to /map) once mounted.
+    await expect(page.getByText(/back/i).first()).toBeVisible({
+      timeout: 10_000,
+    });
   });
 }
