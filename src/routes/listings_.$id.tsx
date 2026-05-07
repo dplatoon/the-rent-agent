@@ -2,7 +2,7 @@ import { createFileRoute, Link, useRouter, notFound } from "@tanstack/react-rout
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatPrice, toggleSaved, type Listing } from "@/lib/listings";
-import { fetchAgent } from "@/lib/agents";
+import { fetchAgent, agentRouteParams } from "@/lib/agents";
 import { useCompare, COMPARE_MAX } from "@/lib/compare-store";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -200,7 +200,7 @@ function ListingDetail() {
             {agent && (
               <Link
                 to="/agent/$state"
-                params={{ state: agent.id.toLowerCase() }}
+                params={agentRouteParams(agent)}
                 className="mt-6 flex items-center gap-3 p-3 rounded-xl border border-border hover:border-primary/50 transition group"
               >
                 <div className="w-12 h-12 rounded-full flex items-center justify-center text-2xl" style={{ background: agent.color }}>

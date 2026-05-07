@@ -11,3 +11,13 @@ export async function fetchAgent(id: string) {
   if (error) throw error;
   return data;
 }
+
+/**
+ * Build the route params for linking to an agent's state page.
+ * The /agent/$state route is keyed by the agent id (e.g. "AZ", "CA"),
+ * lowercased to match the canonical URL form used across the app.
+ */
+export function agentRouteParams(agent: { id: string }): { state: string } {
+  return { state: agent.id.toLowerCase() };
+}
+
