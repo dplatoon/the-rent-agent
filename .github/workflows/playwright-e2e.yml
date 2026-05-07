@@ -21,6 +21,7 @@ jobs:
         shard: [1, 2, 3, 4]
     env:
       PLAYWRIGHT_BASE_URL: ${{ vars.PLAYWRIGHT_BASE_URL || 'https://the-rent-agent.lovable.app' }}
+      TRACE_RETENTION_DAYS: ${{ inputs.trace_retention_days || vars.PLAYWRIGHT_TRACE_RETENTION_DAYS || '14' }}
     steps:
       - uses: actions/checkout@v4
 
