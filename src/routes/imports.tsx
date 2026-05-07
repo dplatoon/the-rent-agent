@@ -45,6 +45,44 @@ function ImportsPage() {
   const [draftOpen, setDraftOpen] = useState<null | DraftKind>(null);
   const [draftText, setDraftText] = useState("");
   const [drafting, setDrafting] = useState(false);
+  const [shareItem, setShareItem] = useState<ExternalListing | null>(null);
+  const [shareExpiry, setShareExpiry] = useState<string>("never");
+  const [shareMask, setShareMask] = useState(false);
+  const [savingShare, setSavingShare] = useState(false);
+
+  const openShare = (l: ExternalListing) => {
+    setShareItem(l);
+    setShareMask(l.share_mask_sensitive);
+    if (!l.share_expires_at) setShareExpiry("never");
+    else {
+      const ms = new Date(l.share_expires_at).getTime() - Date.now();
+      if (ms <= 1.5 * 3600e3) setShareExpiry("1h");
+      else if (ms <= 1.5 * 24 * 3600e3) setShareExpiry("24h");
+      else if (ms <= 1.5 * 7 * 24 * 3600e3) setShareExpiry("7d");
+      else setShareExpiry("30d");
+    }
+  };
+
+  const expiryToDate = (v: string): string | null => {
+    const map: Record<string, number> = { "1h": 3600e3, "24h": 24 * 3600e3, "7d": 7 * 24 * 3600e3, "30d": 30 * 24 * 3600e3 };
+    if (v === "never" || !map[v]) return null;
+    return new Date(Date.now() + map[v]).toISOString();
+  };
+
+  const saveShareSettings = async () => {
+    if (!shareItem) return;
+    setSavingShare(true);
+    const share_expires_at = expiryToDate(shareExpiry);
+    const { error } = await supabase
+      .from("external_listings")
+      .update({ share_expires_at, share_mask_sensitive: shareMask })
+      .eq("id", shareItem.id);
+    setSavingShare(false);
+    if (error) { toast.error(error.message); return; }
+    setItems((xs) => xs.map((x) => x.id === shareItem.id ? { ...x, share_expires_at, share_mask_sensitive: shareMask } : x));
+    setShareItem((s) => s ? { ...s, share_expires_at, share_mask_sensitive: shareMask } : s);
+    toast.success("Share settings updated");
+  };
 
   const load = async () => {
     setLoading(true);
