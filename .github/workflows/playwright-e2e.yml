@@ -88,6 +88,20 @@ jobs:
             find test-results -name 'trace*.zip' 2>/dev/null | sed 's/^/- /'
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Print video links
+        if: always() && steps.upload-videos.outputs.artifact-url != ''
+        run: |
+          echo "::notice title=Playwright videos (shard ${{ matrix.shard }})::Download: ${{ steps.upload-videos.outputs.artifact-url }}"
+          echo "### Playwright videos — shard ${{ matrix.shard }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- [Download video artifact](${{ steps.upload-videos.outputs.artifact-url }})" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Videos are uploaded only on test failures or retries." >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo ""
+            echo "**Video files in this shard:**"
+            find test-results -name '*.webm' 2>/dev/null | sed 's/^/- /'
+          } >> "$GITHUB_STEP_SUMMARY"
+
   merge-reports:
     if: always()
     needs: e2e
