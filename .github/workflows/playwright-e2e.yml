@@ -9,6 +9,10 @@ on:
         description: "Days to retain Playwright trace/screenshot artifacts"
         required: false
         default: "14"
+      video_retention_days:
+        description: "Days to retain Playwright video artifacts"
+        required: false
+        default: "14"
 
 jobs:
   e2e:
@@ -22,6 +26,7 @@ jobs:
     env:
       PLAYWRIGHT_BASE_URL: ${{ vars.PLAYWRIGHT_BASE_URL || 'https://the-rent-agent.lovable.app' }}
       TRACE_RETENTION_DAYS: ${{ inputs.trace_retention_days || vars.PLAYWRIGHT_TRACE_RETENTION_DAYS || '14' }}
+      VIDEO_RETENTION_DAYS: ${{ inputs.video_retention_days || vars.PLAYWRIGHT_VIDEO_RETENTION_DAYS || '14' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -58,6 +63,15 @@ jobs:
           path: test-results/**/trace*.zip
           if-no-files-found: ignore
           retention-days: ${{ env.TRACE_RETENTION_DAYS }}
+
+      - name: Upload Playwright videos (shard ${{ matrix.shard }})
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-videos-shard-${{ matrix.shard }}
+          path: test-results/**/*.webm
+          if-no-files-found: ignore
+          retention-days: ${{ env.VIDEO_RETENTION_DAYS }}
 
       - name: Print trace links
         if: always() && steps.upload-traces.outputs.artifact-url != ''
