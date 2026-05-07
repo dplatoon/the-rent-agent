@@ -200,7 +200,7 @@ function ListingDetail() {
             {agent && (
               <Link
                 to="/agent/$state"
-                params={{ state: agent.state.toLowerCase() }}
+                params={{ state: agent.id.toLowerCase() }}
                 className="mt-6 flex items-center gap-3 p-3 rounded-xl border border-border hover:border-primary/50 transition group"
               >
                 <div className="w-12 h-12 rounded-full flex items-center justify-center text-2xl" style={{ background: agent.color }}>
