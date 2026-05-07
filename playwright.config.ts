@@ -8,8 +8,7 @@ export default defineConfig({
   reporter: "list",
   use: {
     baseURL:
-      process.env.PLAYWRIGHT_BASE_URL ??
-      "https://id-preview--0632b21f-b411-4099-aa84-6a2ca5449ebe.lovable.app",
+      process.env.PLAYWRIGHT_BASE_URL ?? "https://the-rent-agent.lovable.app",
     trace: "retain-on-failure",
   },
   projects: [
