@@ -10,7 +10,9 @@ export default defineConfig({
   use: {
     baseURL:
       process.env.PLAYWRIGHT_BASE_URL ?? "https://the-rent-agent.lovable.app",
-    trace: "retain-on-failure",
+    trace: "on-first-retry",
+    screenshot: "only-on-failure",
+    video: "retain-on-failure",
   },
   projects: [
     {
