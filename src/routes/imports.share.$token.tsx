@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-  fetchSharedImport, maskSensitive, SOURCE_META,
+  fetchSharedImport, SOURCE_META,
   type SharedFetchResult, type ExternalSource,
 } from "@/lib/external-listings";
 import { ExternalLink, Copy, Check, Bed, Bath, MapPin, EyeOff, Clock } from "lucide-react";
@@ -24,15 +24,22 @@ function SharePage() {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    fetchSharedImport(token).then(setResult);
+    let alive = true;
+    fetchSharedImport(token).then((r) => { if (alive) setResult(r); });
+    return () => { alive = false; };
   }, [token]);
+
+  useEffect(() => {
+    if (!copied) return;
+    const t = setTimeout(() => setCopied(false), 2000);
+    return () => clearTimeout(t);
+  }, [copied]);
 
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
       setCopied(true);
       toast.success("Link copied to clipboard");
-      setTimeout(() => setCopied(false), 2000);
     } catch {
       toast.error("Couldn't copy link");
     }
@@ -63,8 +70,8 @@ function SharePage() {
     );
   }
 
-  const item = maskSensitive(result.listing);
-  const masked = result.listing.share_mask_sensitive;
+  const item = result.listing;
+  const masked = item.share_mask_sensitive;
   const src = SOURCE_META[(item.source as ExternalSource) || "other"];
 
   return (
@@ -79,7 +86,7 @@ function SharePage() {
 
       {masked && (
         <div className="mb-3 rounded-lg border border-border bg-elevated/50 px-3 py-2 text-xs text-muted-foreground inline-flex items-center gap-2">
-          <EyeOff className="h-3.5 w-3.5" /> Sensitive details (notes, exact address) hidden by the owner.
+          <EyeOff className="h-3.5 w-3.5" /> Sensitive details (notes, exact address, original link) hidden by the owner.
         </div>
       )}
 
@@ -103,7 +110,7 @@ function SharePage() {
           </div>
         )}
         {item.notes && <p className="text-sm bg-elevated/50 rounded-lg p-3 mb-4 whitespace-pre-wrap">{item.notes}</p>}
-        {!masked ? (
+        {item.url ? (
           <a href={item.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-primary hover:underline">
             View original on {src.label} <ExternalLink className="h-3 w-3" />
           </a>
@@ -114,9 +121,9 @@ function SharePage() {
         )}
       </div>
 
-      {result.listing.share_expires_at && (
+      {item.share_expires_at && (
         <p className="text-xs text-muted-foreground text-center mt-3">
-          Link expires {new Date(result.listing.share_expires_at).toLocaleString()}
+          Link expires {new Date(item.share_expires_at).toLocaleString()}
         </p>
       )}
       <p className="text-xs text-muted-foreground text-center mt-6">
