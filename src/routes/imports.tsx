@@ -96,7 +96,7 @@ function ImportsPage() {
   const add = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!url.trim()) return;
-    try { new URL(url); } catch { toast.error("Enter a valid URL"); return; }
+    if (!isSafeHttpUrl(url)) { toast.error("Enter a valid http(s) URL"); return; }
     setAdding(true);
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) { navigate({ to: "/auth" }); return; }
