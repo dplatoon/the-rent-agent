@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import {
-  detectSource, listImports, SOURCE_META,
+  detectSource, isSafeHttpUrl, listImports, SOURCE_META,
   type ExternalListing, type ExternalSource,
 } from "@/lib/external-listings";
 import {
@@ -96,7 +96,7 @@ function ImportsPage() {
   const add = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!url.trim()) return;
-    try { new URL(url); } catch { toast.error("Enter a valid URL"); return; }
+    if (!isSafeHttpUrl(url)) { toast.error("Enter a valid http(s) URL"); return; }
     setAdding(true);
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) { navigate({ to: "/auth" }); return; }
@@ -257,12 +257,22 @@ function ImportsPage() {
                   {sel && <span className="text-[10px]">✓</span>}
                 </button>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <span className="font-mono text-[10px] px-1.5 py-0.5 rounded" style={{ background: `${src.color}22`, color: src.color }}>
                       {src.label}
                     </span>
                     {l.price_monthly && <span className="font-bold">${l.price_monthly.toLocaleString()}/mo</span>}
                     {l.location && <span className="text-xs text-muted-foreground truncate">· {l.location}</span>}
+                    {l.share_mask_sensitive && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-mono text-muted-foreground border border-border rounded px-1.5 py-0.5" title="Sensitive details hidden on share">
+                        <EyeOff className="h-2.5 w-2.5" /> MASKED
+                      </span>
+                    )}
+                    {l.share_expires_at && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-mono text-muted-foreground border border-border rounded px-1.5 py-0.5" title={`Share expires ${new Date(l.share_expires_at).toLocaleString()}`}>
+                        <Clock className="h-2.5 w-2.5" /> EXPIRES
+                      </span>
+                    )}
                   </div>
                   <div className="font-medium truncate">{l.title || l.url}</div>
                   {l.notes && <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{l.notes}</div>}

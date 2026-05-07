@@ -428,6 +428,24 @@ export type Database = {
           tier: string
         }[]
       }
+      get_shared_listing: {
+        Args: { _token: string }
+        Returns: {
+          bathrooms: number
+          bedrooms: number
+          created_at: string
+          expired: boolean
+          id: string
+          location: string
+          notes: string
+          price_monthly: number
+          share_expires_at: string
+          share_mask_sensitive: boolean
+          source: string
+          title: string
+          url: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
