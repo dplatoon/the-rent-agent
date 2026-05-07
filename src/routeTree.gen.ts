@@ -17,7 +17,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ListingsIdRouteImport } from './routes/listings.$id'
+import { Route as ListingsIdRouteImport } from './routes/listings_.$id'
 import { Route as AgentStateRouteImport } from './routes/agent.$state'
 
 const SavedRoute = SavedRouteImport.update({
@@ -61,9 +61,9 @@ const IndexRoute = IndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const ListingsIdRoute = ListingsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => ListingsRoute,
+  id: '/listings_/$id',
+  path: '/listings/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AgentStateRoute = AgentStateRouteImport.update({
   id: '/agent/$state',
@@ -76,7 +76,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
-  '/listings': typeof ListingsRouteWithChildren
+  '/listings': typeof ListingsRoute
   '/map': typeof MapRoute
   '/pricing': typeof PricingRoute
   '/saved': typeof SavedRoute
@@ -88,7 +88,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
-  '/listings': typeof ListingsRouteWithChildren
+  '/listings': typeof ListingsRoute
   '/map': typeof MapRoute
   '/pricing': typeof PricingRoute
   '/saved': typeof SavedRoute
@@ -101,12 +101,12 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
-  '/listings': typeof ListingsRouteWithChildren
+  '/listings': typeof ListingsRoute
   '/map': typeof MapRoute
   '/pricing': typeof PricingRoute
   '/saved': typeof SavedRoute
   '/agent/$state': typeof AgentStateRoute
-  '/listings/$id': typeof ListingsIdRoute
+  '/listings_/$id': typeof ListingsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -144,7 +144,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/saved'
     | '/agent/$state'
-    | '/listings/$id'
+    | '/listings_/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -152,11 +152,12 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRoute
   DashboardRoute: typeof DashboardRoute
-  ListingsRoute: typeof ListingsRouteWithChildren
+  ListingsRoute: typeof ListingsRoute
   MapRoute: typeof MapRoute
   PricingRoute: typeof PricingRoute
   SavedRoute: typeof SavedRoute
   AgentStateRoute: typeof AgentStateRoute
+  ListingsIdRoute: typeof ListingsIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -217,12 +218,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/listings/$id': {
-      id: '/listings/$id'
-      path: '/$id'
+    '/listings_/$id': {
+      id: '/listings_/$id'
+      path: '/listings/$id'
       fullPath: '/listings/$id'
       preLoaderRoute: typeof ListingsIdRouteImport
-      parentRoute: typeof ListingsRoute
+      parentRoute: typeof rootRouteImport
     }
     '/agent/$state': {
       id: '/agent/$state'
@@ -234,29 +235,27 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface ListingsRouteChildren {
-  ListingsIdRoute: typeof ListingsIdRoute
-}
-
-const ListingsRouteChildren: ListingsRouteChildren = {
-  ListingsIdRoute: ListingsIdRoute,
-}
-
-const ListingsRouteWithChildren = ListingsRoute._addFileChildren(
-  ListingsRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AuthRoute: AuthRoute,
   DashboardRoute: DashboardRoute,
-  ListingsRoute: ListingsRouteWithChildren,
+  ListingsRoute: ListingsRoute,
   MapRoute: MapRoute,
   PricingRoute: PricingRoute,
   SavedRoute: SavedRoute,
   AgentStateRoute: AgentStateRoute,
+  ListingsIdRoute: ListingsIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

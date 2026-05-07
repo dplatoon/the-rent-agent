@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/listings/$id")({
+export const Route = createFileRoute("/listings_/$id")({
   head: ({ loaderData }: { loaderData?: { listing: Listing } }) => {
     const l = loaderData?.listing;
     const title = l ? `${l.title} — ${l.city}, ${l.state}` : "Listing — RentAgent.io";
