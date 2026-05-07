@@ -5,7 +5,7 @@ export default defineConfig({
   timeout: 60_000,
   expect: { timeout: 10_000 },
   fullyParallel: true,
-  reporter: "list",
+  reporter: process.env.CI ? [["blob"], ["list"]] : "list",
   use: {
     baseURL:
       process.env.PLAYWRIGHT_BASE_URL ?? "https://the-rent-agent.lovable.app",
