@@ -57,7 +57,7 @@ jobs:
           name: playwright-traces-shard-${{ matrix.shard }}
           path: test-results/**/trace*.zip
           if-no-files-found: ignore
-          retention-days: 14
+          retention-days: ${{ env.TRACE_RETENTION_DAYS }}
 
       - name: Print trace links
         if: always() && steps.upload-traces.outputs.artifact-url != ''
