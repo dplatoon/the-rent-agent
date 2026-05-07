@@ -2,7 +2,7 @@ import { createFileRoute, Link, useRouter, notFound } from "@tanstack/react-rout
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatPrice, toggleSaved, type Listing } from "@/lib/listings";
-import { fetchAgent } from "@/lib/agents";
+import { fetchAgent, agentRouteParams } from "@/lib/agents";
 import { useCompare, COMPARE_MAX } from "@/lib/compare-store";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
