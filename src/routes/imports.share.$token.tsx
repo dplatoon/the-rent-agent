@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { fetchSharedImport, SOURCE_META, type ExternalListing, type ExternalSource } from "@/lib/external-listings";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Copy, Check, Bed, Bath, MapPin } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/imports/share/$token")({
   head: () => ({
