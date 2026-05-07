@@ -5,6 +5,7 @@ export default defineConfig({
   timeout: 60_000,
   expect: { timeout: 10_000 },
   fullyParallel: true,
+  retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? [["blob"], ["list"]] : "list",
   use: {
     baseURL:
