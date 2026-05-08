@@ -245,6 +245,21 @@ function AgentChat() {
           </div>
         </section>
       )}
+
+      {liveListings.length > 0 && (
+        <section className="mt-12">
+          <div className="flex items-end justify-between mb-4">
+            <div>
+              <div className="font-mono text-[10px] tracking-[0.25em] text-mint mb-1">// LIVE MARKET</div>
+              <h2 className="font-display text-2xl font-bold">Fresh on the market in {agent.state}</h2>
+              <p className="text-xs text-muted-foreground mt-1">Powered by RentCast · updated daily</p>
+            </div>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {liveListings.map((l) => <RentCastCard key={l.id} listing={l} />)}
+          </div>
+        </section>
+      )}
     </main>
   );
 }
