@@ -5,7 +5,7 @@ import { ListingCard } from "@/components/ListingCard";
 import type { Listing } from "@/lib/listings";
 import { Heart } from "lucide-react";
 
-export const Route = createFileRoute("/saved")({
+export const Route = createFileRoute("/_authenticated/saved")({
   head: () => ({
     meta: [
       { title: "Your Saved Rentals — RentAgent.io" },

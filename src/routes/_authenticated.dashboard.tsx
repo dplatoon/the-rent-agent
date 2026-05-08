@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getAgentAvatar } from "@/lib/agent-avatars";
 import { MessageSquare } from "lucide-react";
 
-export const Route = createFileRoute("/dashboard")({
+export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
 });
 
