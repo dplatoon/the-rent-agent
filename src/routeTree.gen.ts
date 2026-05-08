@@ -23,6 +23,7 @@ import { Route as AuthenticatedRemindersRouteImport } from './routes/_authentica
 import { Route as AuthenticatedImportsRouteImport } from './routes/_authenticated.imports'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
 import { Route as ImportsShareTokenRouteImport } from './routes/imports.share.$token'
+import { Route as ApiPublicHooksRentcastSyncRouteImport } from './routes/api/public/hooks/rentcast-sync'
 
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
@@ -93,6 +94,12 @@ const ImportsShareTokenRoute = ImportsShareTokenRouteImport.update({
   path: '/imports/share/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksRentcastSyncRoute =
+  ApiPublicHooksRentcastSyncRouteImport.update({
+    id: '/api/public/hooks/rentcast-sync',
+    path: '/api/public/hooks/rentcast-sync',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -108,6 +115,7 @@ export interface FileRoutesByFullPath {
   '/agent/$state': typeof AgentStateRoute
   '/listings/$id': typeof ListingsIdRoute
   '/imports/share/$token': typeof ImportsShareTokenRoute
+  '/api/public/hooks/rentcast-sync': typeof ApiPublicHooksRentcastSyncRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -123,6 +131,7 @@ export interface FileRoutesByTo {
   '/agent/$state': typeof AgentStateRoute
   '/listings/$id': typeof ListingsIdRoute
   '/imports/share/$token': typeof ImportsShareTokenRoute
+  '/api/public/hooks/rentcast-sync': typeof ApiPublicHooksRentcastSyncRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -140,6 +149,7 @@ export interface FileRoutesById {
   '/agent/$state': typeof AgentStateRoute
   '/listings_/$id': typeof ListingsIdRoute
   '/imports/share/$token': typeof ImportsShareTokenRoute
+  '/api/public/hooks/rentcast-sync': typeof ApiPublicHooksRentcastSyncRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -157,6 +167,7 @@ export interface FileRouteTypes {
     | '/agent/$state'
     | '/listings/$id'
     | '/imports/share/$token'
+    | '/api/public/hooks/rentcast-sync'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -172,6 +183,7 @@ export interface FileRouteTypes {
     | '/agent/$state'
     | '/listings/$id'
     | '/imports/share/$token'
+    | '/api/public/hooks/rentcast-sync'
   id:
     | '__root__'
     | '/'
@@ -188,6 +200,7 @@ export interface FileRouteTypes {
     | '/agent/$state'
     | '/listings_/$id'
     | '/imports/share/$token'
+    | '/api/public/hooks/rentcast-sync'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -201,6 +214,7 @@ export interface RootRouteChildren {
   AgentStateRoute: typeof AgentStateRoute
   ListingsIdRoute: typeof ListingsIdRoute
   ImportsShareTokenRoute: typeof ImportsShareTokenRoute
+  ApiPublicHooksRentcastSyncRoute: typeof ApiPublicHooksRentcastSyncRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -303,6 +317,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ImportsShareTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/rentcast-sync': {
+      id: '/api/public/hooks/rentcast-sync'
+      path: '/api/public/hooks/rentcast-sync'
+      fullPath: '/api/public/hooks/rentcast-sync'
+      preLoaderRoute: typeof ApiPublicHooksRentcastSyncRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -335,6 +356,7 @@ const rootRouteChildren: RootRouteChildren = {
   AgentStateRoute: AgentStateRoute,
   ListingsIdRoute: ListingsIdRoute,
   ImportsShareTokenRoute: ImportsShareTokenRoute,
+  ApiPublicHooksRentcastSyncRoute: ApiPublicHooksRentcastSyncRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

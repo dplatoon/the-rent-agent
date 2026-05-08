@@ -398,6 +398,80 @@ export type Database = {
           },
         ]
       }
+      rentcast_listings: {
+        Row: {
+          address: string | null
+          agent_id: string | null
+          bathrooms: number | null
+          bedrooms: number | null
+          city: string | null
+          created_at: string
+          id: string
+          last_seen_at: string
+          lat: number | null
+          lng: number | null
+          price: number | null
+          property_type: string | null
+          raw: Json | null
+          rentcast_id: string
+          sqft: number | null
+          state: string
+          status: string
+          updated_at: string
+          zip: string | null
+        }
+        Insert: {
+          address?: string | null
+          agent_id?: string | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          city?: string | null
+          created_at?: string
+          id?: string
+          last_seen_at?: string
+          lat?: number | null
+          lng?: number | null
+          price?: number | null
+          property_type?: string | null
+          raw?: Json | null
+          rentcast_id: string
+          sqft?: number | null
+          state: string
+          status?: string
+          updated_at?: string
+          zip?: string | null
+        }
+        Update: {
+          address?: string | null
+          agent_id?: string | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          city?: string | null
+          created_at?: string
+          id?: string
+          last_seen_at?: string
+          lat?: number | null
+          lng?: number | null
+          price?: number | null
+          property_type?: string | null
+          raw?: Json | null
+          rentcast_id?: string
+          sqft?: number | null
+          state?: string
+          status?: string
+          updated_at?: string
+          zip?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rentcast_listings_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saved_listings: {
         Row: {
           created_at: string
