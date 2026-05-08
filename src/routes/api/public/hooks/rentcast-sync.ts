@@ -98,7 +98,7 @@ export const Route = createFileRoute('/api/public/hooks/rentcast-sync')({
             if (rows.length > 0) {
               const { error } = await supabaseAdmin
                 .from('rentcast_listings')
-                .upsert(rows, { onConflict: 'rentcast_id' })
+                .upsert(rows as never, { onConflict: 'rentcast_id' })
               if (error) throw error
             }
 
