@@ -135,8 +135,22 @@ function ListingsPage() {
             Listings, hand-curated.
           </h1>
           <p className="text-muted-foreground mt-2 max-w-xl">
-            {total} of {listings.length} homes match. Page {safePage} of {totalPages}.
+            {total} of {sourceTotal} homes match. Page {safePage} of {totalPages}.
           </p>
+        </div>
+        <div className="inline-flex rounded-full border border-border p-1 bg-card/50">
+          <button
+            onClick={() => update({ source: "curated" })}
+            className={`px-4 py-1.5 rounded-full text-xs font-medium transition ${!isLive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            Curated
+          </button>
+          <button
+            onClick={() => update({ source: "live" })}
+            className={`inline-flex items-center gap-1 px-4 py-1.5 rounded-full text-xs font-medium transition ${isLive ? "bg-mint text-background" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            <Radio className="h-3 w-3" /> Live Market
+          </button>
         </div>
       </div>
 
