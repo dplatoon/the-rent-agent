@@ -179,9 +179,14 @@ function AgentChat() {
             {agent.is_online && <span className="font-mono text-[9px] text-mint">● ONLINE</span>}
           </div>
           <div className="font-mono text-[10px] text-muted-foreground tracking-wider uppercase">
-            {agent.state} · {agent.specialty}
+            {agent.state}{(agent as any).major_city ? ` · ${(agent as any).major_city}` : ""} · {agent.specialty}
           </div>
-          <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{agent.bio}</p>
+          {(agent as any).catchphrase && (
+            <p className="text-sm italic mt-1" style={{ color: agent.color }}>
+              "{(agent as any).catchphrase}"
+            </p>
+          )}
+          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{agent.bio}</p>
         </div>
       </div>
 
