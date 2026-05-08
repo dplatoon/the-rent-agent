@@ -188,6 +188,8 @@ function ImportsPage() {
         Paste a link from Zillow, Apartments.com, Rent.com, Craigslist, Facebook Marketplace, Trulia, Redfin, HotPads, or Realtor.com. Your agent can then draft tour requests, application letters, and compare them for you.
       </p>
 
+      <DraftQuotaWidget quota={quota} />
+
       {/* Add form */}
       <form onSubmit={add} className="rounded-2xl border border-border bg-card p-5 mb-8 space-y-3">
         <div className="flex items-center gap-2 text-sm font-mono text-muted-foreground">
