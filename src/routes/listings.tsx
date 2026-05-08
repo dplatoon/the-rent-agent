@@ -123,7 +123,7 @@ function ListingsPage() {
   const pageItems = filtered.slice(start, start + perPage);
   const livePageItems = liveFiltered.slice(start, start + perPage);
 
-  const clearAll = () => navigate({ search: () => ({ q: "", state: "", beds: 0, maxPrice: 0, pets: false, furnished: false, sort: "featured" as Sort, page: 1, perPage: 12 }) });
+  const clearAll = () => navigate({ search: () => ({ q: "", state: "", beds: 0, maxPrice: 0, pets: false, furnished: false, sort: "featured" as Sort, page: 1, perPage: 12, source }) });
   const hasFilters = q || state || beds || maxPrice || pets || furnished;
 
   return (
