@@ -101,11 +101,27 @@ function ListingsPage() {
     return out;
   }, [listings, state, beds, maxPrice, pets, furnished, q, sort]);
 
-  const total = filtered.length;
+  const liveFiltered = useMemo(() => {
+    return liveListings.filter((l) => {
+      if (state && (l.state || "").toUpperCase() !== state.toUpperCase()) return false;
+      if (beds && (l.bedrooms ?? 0) < beds) return false;
+      if (maxPrice && (l.price ?? 0) > maxPrice) return false;
+      if (q) {
+        const s = q.toLowerCase();
+        if (!`${l.address ?? ""} ${l.city ?? ""} ${l.zip ?? ""}`.toLowerCase().includes(s)) return false;
+      }
+      return true;
+    });
+  }, [liveListings, state, beds, maxPrice, q]);
+
+  const isLive = source === "live";
+  const total = isLive ? liveFiltered.length : filtered.length;
+  const sourceTotal = isLive ? liveListings.length : listings.length;
   const totalPages = Math.max(1, Math.ceil(total / perPage));
   const safePage = Math.min(page, totalPages);
   const start = (safePage - 1) * perPage;
   const pageItems = filtered.slice(start, start + perPage);
+  const livePageItems = liveFiltered.slice(start, start + perPage);
 
   const clearAll = () => navigate({ search: () => ({ q: "", state: "", beds: 0, maxPrice: 0, pets: false, furnished: false, sort: "featured" as Sort, page: 1, perPage: 12 }) });
   const hasFilters = q || state || beds || maxPrice || pets || furnished;
