@@ -56,8 +56,13 @@ function ListingsPage() {
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const [list, ags] = await Promise.all([fetchListings(), fetchAgents()]);
+      const [list, ags, live] = await Promise.all([
+        fetchListings(),
+        fetchAgents(),
+        fetchRentcastListings({ limit: 200 }).catch(() => []),
+      ]);
       setListings(list);
+      setLiveListings(live);
       setAgents(ags as any);
       const { data: { session } } = await supabase.auth.getSession();
       if (session) setSaved(await fetchSavedIds(session.user.id));
