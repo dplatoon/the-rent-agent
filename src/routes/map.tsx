@@ -31,6 +31,44 @@ function MapPage() {
 
       <AgentMap agents={agents} />
 
+      {/* Legend */}
+      <section className="mt-10 rounded-2xl border border-border bg-surface/40 p-5">
+        <div className="flex items-baseline justify-between mb-4 gap-4 flex-wrap">
+          <div>
+            <div className="font-mono text-[10px] tracking-[0.25em] text-primary mb-1">// LEGEND</div>
+            <h2 className="font-display text-lg font-bold">How to read the map</h2>
+          </div>
+          <p className="text-xs text-muted-foreground max-w-md">
+            Each pin's <span className="text-foreground font-medium">color</span> is its agent's signature.
+            The <span className="text-foreground font-medium">city</span> shows their home market;
+            the <span className="text-foreground font-medium">catchphrase</span> is their lens on it.
+          </p>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {agents.map((a) => (
+            <div key={a.id} className="flex items-start gap-3 rounded-lg border border-border/60 bg-card/60 p-3">
+              <span
+                className="mt-1 inline-block w-3 h-3 rounded-full shrink-0"
+                style={{ background: a.color, boxShadow: `0 0 10px ${a.color}aa` }}
+              />
+              <div className="min-w-0">
+                <div className="flex items-baseline gap-2 flex-wrap">
+                  <span className="font-bold text-sm">{a.name}</span>
+                  <span className="font-mono text-[9px] text-muted-foreground tracking-wider uppercase">
+                    {(a as any).major_city || a.state}
+                  </span>
+                </div>
+                {(a as any).catchphrase && (
+                  <p className="text-xs italic mt-0.5 leading-snug" style={{ color: a.color }}>
+                    "{(a as any).catchphrase}"
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {agents.map((a) => (
           <a
