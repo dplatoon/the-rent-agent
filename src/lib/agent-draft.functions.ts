@@ -87,6 +87,7 @@ export const draftAgentMessage = createServerFn({ method: "POST" })
       .eq("id", userId)
       .maybeSingle();
 
+    const notesCap = kind === "compare" ? 200 : 300;
     const summary = items.map((l: any, i: number) => {
       const bits = [
         clip(l.title, 120) || "Untitled listing",
@@ -94,7 +95,7 @@ export const draftAgentMessage = createServerFn({ method: "POST" })
         l.price_monthly ? `$${l.price_monthly}/mo` : "",
         l.bedrooms ? `${l.bedrooms}bd` : "",
         l.bathrooms ? `${l.bathrooms}ba` : "",
-        l.notes ? `Notes: ${clip(l.notes, 300)}` : "",
+        l.notes ? `Notes: ${clip(l.notes, notesCap)}` : "",
         `URL: ${clip(l.url, 200)}`,
       ].filter(Boolean).join(" · ");
       return `Listing ${i + 1}: ${bits}`;

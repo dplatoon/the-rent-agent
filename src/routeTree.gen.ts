@@ -89,9 +89,9 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const ImportsShareTokenRoute = ImportsShareTokenRouteImport.update({
-  id: '/share/$token',
-  path: '/share/$token',
-  getParentRoute: () => ImportsRoute,
+  id: '/imports/share/$token',
+  path: '/imports/share/$token',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -200,6 +200,7 @@ export interface RootRouteChildren {
   PricingRoute: typeof PricingRoute
   AgentStateRoute: typeof AgentStateRoute
   ListingsIdRoute: typeof ListingsIdRoute
+  ImportsShareTokenRoute: typeof ImportsShareTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -297,10 +298,10 @@ declare module '@tanstack/react-router' {
     }
     '/imports/share/$token': {
       id: '/imports/share/$token'
-      path: '/share/$token'
+      path: '/imports/share/$token'
       fullPath: '/imports/share/$token'
       preLoaderRoute: typeof ImportsShareTokenRouteImport
-      parentRoute: typeof ImportsRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -333,16 +334,8 @@ const rootRouteChildren: RootRouteChildren = {
   PricingRoute: PricingRoute,
   AgentStateRoute: AgentStateRoute,
   ListingsIdRoute: ListingsIdRoute,
+  ImportsShareTokenRoute: ImportsShareTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
