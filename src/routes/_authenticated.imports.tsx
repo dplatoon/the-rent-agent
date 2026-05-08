@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import {
-  detectSource, isSafeHttpUrl, listImports, SOURCE_META,
+  detectSource, isSafeHttpUrl, listImports, SOURCE_META, expiryToDate,
   type ExternalListing, type ExternalSource,
 } from "@/lib/external-listings";
 import {
