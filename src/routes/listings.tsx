@@ -3,12 +3,14 @@ import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { useEffect, useMemo, useState } from "react";
 import { fetchListings, fetchSavedIds, type Listing } from "@/lib/listings";
+import { fetchRentcastListings, type RentcastListing } from "@/lib/rentcast";
 import { fetchAgents } from "@/lib/agents";
 import { ListingCard } from "@/components/ListingCard";
+import { RentCastCard } from "@/components/RentCastCard";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { SlidersHorizontal, Search, ChevronLeft, ChevronRight, GitCompare } from "lucide-react";
+import { SlidersHorizontal, Search, ChevronLeft, ChevronRight, GitCompare, Radio } from "lucide-react";
 import { useCompare } from "@/lib/compare-store";
 
 const SORTS = ["featured", "price-asc", "price-desc", "beds-desc", "newest"] as const;
