@@ -26,6 +26,7 @@ const searchSchema = z.object({
   sort: fallback(z.enum(SORTS), "featured").default("featured"),
   page: fallback(z.number().int().min(1), 1).default(1),
   perPage: fallback(z.number().int().min(6).max(48), 12).default(12),
+  source: fallback(z.enum(["curated", "live"]), "curated").default("curated"),
 });
 
 export const Route = createFileRoute("/listings")({
