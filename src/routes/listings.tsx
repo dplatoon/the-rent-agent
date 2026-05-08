@@ -243,18 +243,20 @@ function ListingsPage() {
             <div key={i} className="aspect-[4/3] rounded-2xl bg-card animate-pulse" />
           ))}
         </div>
-      ) : pageItems.length === 0 ? (
+      ) : (isLive ? livePageItems.length === 0 : pageItems.length === 0) ? (
         <div className="rounded-2xl border border-dashed border-border p-16 text-center">
           <SlidersHorizontal className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
-          <p className="text-muted-foreground">No listings match. Loosen those filters.</p>
+          <p className="text-muted-foreground">
+            {isLive ? "No live listings match yet. Try a different state or loosen filters." : "No listings match. Loosen those filters."}
+          </p>
           <Button variant="outline" className="mt-4" onClick={clearAll}>Clear filters</Button>
         </div>
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {pageItems.map((l) => (
-              <ListingCard key={l.id} listing={l} saved={saved.has(l.id)} />
-            ))}
+            {isLive
+              ? livePageItems.map((l) => <RentCastCard key={l.id} listing={l} />)
+              : pageItems.map((l) => <ListingCard key={l.id} listing={l} saved={saved.has(l.id)} />)}
           </div>
 
           {/* Pagination */}
