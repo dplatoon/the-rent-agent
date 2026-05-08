@@ -4,7 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchAgent } from "@/lib/agents";
 import { getAgentAvatar } from "@/lib/agent-avatars";
 import { fetchListings, type Listing } from "@/lib/listings";
+import { fetchRentcastListings, type RentcastListing } from "@/lib/rentcast";
 import { ListingCard } from "@/components/ListingCard";
+import { RentCastCard } from "@/components/RentCastCard";
 import type { Database } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,10 +30,12 @@ function AgentChat() {
   const [sending, setSending] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const [agentListings, setAgentListings] = useState<Listing[]>([]);
+  const [liveListings, setLiveListings] = useState<RentcastListing[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchListings({ agent_id: state, limit: 4 }).then(setAgentListings).catch(() => {});
+    fetchRentcastListings({ agent_id: state, limit: 6 }).then(setLiveListings).catch(() => {});
   }, [state]);
 
   useEffect(() => {
@@ -238,6 +242,21 @@ function AgentChat() {
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
             {agentListings.map((l) => <ListingCard key={l.id} listing={l} />)}
+          </div>
+        </section>
+      )}
+
+      {liveListings.length > 0 && (
+        <section className="mt-12">
+          <div className="flex items-end justify-between mb-4">
+            <div>
+              <div className="font-mono text-[10px] tracking-[0.25em] text-mint mb-1">// LIVE MARKET</div>
+              <h2 className="font-display text-2xl font-bold">Fresh on the market in {agent.state}</h2>
+              <p className="text-xs text-muted-foreground mt-1">Powered by RentCast · updated daily</p>
+            </div>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {liveListings.map((l) => <RentCastCard key={l.id} listing={l} />)}
           </div>
         </section>
       )}

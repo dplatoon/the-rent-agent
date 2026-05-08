@@ -3,12 +3,14 @@ import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { useEffect, useMemo, useState } from "react";
 import { fetchListings, fetchSavedIds, type Listing } from "@/lib/listings";
+import { fetchRentcastListings, type RentcastListing } from "@/lib/rentcast";
 import { fetchAgents } from "@/lib/agents";
 import { ListingCard } from "@/components/ListingCard";
+import { RentCastCard } from "@/components/RentCastCard";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { SlidersHorizontal, Search, ChevronLeft, ChevronRight, GitCompare } from "lucide-react";
+import { SlidersHorizontal, Search, ChevronLeft, ChevronRight, GitCompare, Radio } from "lucide-react";
 import { useCompare } from "@/lib/compare-store";
 
 const SORTS = ["featured", "price-asc", "price-desc", "beds-desc", "newest"] as const;
@@ -24,6 +26,7 @@ const searchSchema = z.object({
   sort: fallback(z.enum(SORTS), "featured").default("featured"),
   page: fallback(z.number().int().min(1), 1).default(1),
   perPage: fallback(z.number().int().min(6).max(48), 12).default(12),
+  source: fallback(z.enum(["curated", "live"]), "curated").default("curated"),
 });
 
 export const Route = createFileRoute("/listings")({
@@ -42,9 +45,10 @@ export const Route = createFileRoute("/listings")({
 function ListingsPage() {
   const navigate = useNavigate({ from: "/listings" });
   const search = Route.useSearch();
-  const { q, state, beds, maxPrice, pets, furnished, sort, page, perPage } = search;
+  const { q, state, beds, maxPrice, pets, furnished, sort, page, perPage, source } = search;
 
   const [listings, setListings] = useState<Listing[]>([]);
+  const [liveListings, setLiveListings] = useState<RentcastListing[]>([]);
   const [agents, setAgents] = useState<{ id: string; state: string }[]>([]);
   const [saved, setSaved] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -52,8 +56,13 @@ function ListingsPage() {
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const [list, ags] = await Promise.all([fetchListings(), fetchAgents()]);
+      const [list, ags, live] = await Promise.all([
+        fetchListings(),
+        fetchAgents(),
+        fetchRentcastListings({ limit: 200 }).catch(() => []),
+      ]);
       setListings(list);
+      setLiveListings(live);
       setAgents(ags as any);
       const { data: { session } } = await supabase.auth.getSession();
       if (session) setSaved(await fetchSavedIds(session.user.id));
@@ -92,13 +101,29 @@ function ListingsPage() {
     return out;
   }, [listings, state, beds, maxPrice, pets, furnished, q, sort]);
 
-  const total = filtered.length;
+  const liveFiltered = useMemo(() => {
+    return liveListings.filter((l) => {
+      if (state && (l.state || "").toUpperCase() !== state.toUpperCase()) return false;
+      if (beds && (l.bedrooms ?? 0) < beds) return false;
+      if (maxPrice && (l.price ?? 0) > maxPrice) return false;
+      if (q) {
+        const s = q.toLowerCase();
+        if (!`${l.address ?? ""} ${l.city ?? ""} ${l.zip ?? ""}`.toLowerCase().includes(s)) return false;
+      }
+      return true;
+    });
+  }, [liveListings, state, beds, maxPrice, q]);
+
+  const isLive = source === "live";
+  const total = isLive ? liveFiltered.length : filtered.length;
+  const sourceTotal = isLive ? liveListings.length : listings.length;
   const totalPages = Math.max(1, Math.ceil(total / perPage));
   const safePage = Math.min(page, totalPages);
   const start = (safePage - 1) * perPage;
   const pageItems = filtered.slice(start, start + perPage);
+  const livePageItems = liveFiltered.slice(start, start + perPage);
 
-  const clearAll = () => navigate({ search: () => ({ q: "", state: "", beds: 0, maxPrice: 0, pets: false, furnished: false, sort: "featured" as Sort, page: 1, perPage: 12 }) });
+  const clearAll = () => navigate({ search: () => ({ q: "", state: "", beds: 0, maxPrice: 0, pets: false, furnished: false, sort: "featured" as Sort, page: 1, perPage: 12, source }) });
   const hasFilters = q || state || beds || maxPrice || pets || furnished;
 
   return (
@@ -110,8 +135,22 @@ function ListingsPage() {
             Listings, hand-curated.
           </h1>
           <p className="text-muted-foreground mt-2 max-w-xl">
-            {total} of {listings.length} homes match. Page {safePage} of {totalPages}.
+            {total} of {sourceTotal} homes match. Page {safePage} of {totalPages}.
           </p>
+        </div>
+        <div className="inline-flex rounded-full border border-border p-1 bg-card/50">
+          <button
+            onClick={() => update({ source: "curated" })}
+            className={`px-4 py-1.5 rounded-full text-xs font-medium transition ${!isLive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            Curated
+          </button>
+          <button
+            onClick={() => update({ source: "live" })}
+            className={`inline-flex items-center gap-1 px-4 py-1.5 rounded-full text-xs font-medium transition ${isLive ? "bg-mint text-background" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            <Radio className="h-3 w-3" /> Live Market
+          </button>
         </div>
       </div>
 
@@ -204,18 +243,20 @@ function ListingsPage() {
             <div key={i} className="aspect-[4/3] rounded-2xl bg-card animate-pulse" />
           ))}
         </div>
-      ) : pageItems.length === 0 ? (
+      ) : (isLive ? livePageItems.length === 0 : pageItems.length === 0) ? (
         <div className="rounded-2xl border border-dashed border-border p-16 text-center">
           <SlidersHorizontal className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
-          <p className="text-muted-foreground">No listings match. Loosen those filters.</p>
+          <p className="text-muted-foreground">
+            {isLive ? "No live listings match yet. Try a different state or loosen filters." : "No listings match. Loosen those filters."}
+          </p>
           <Button variant="outline" className="mt-4" onClick={clearAll}>Clear filters</Button>
         </div>
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {pageItems.map((l) => (
-              <ListingCard key={l.id} listing={l} saved={saved.has(l.id)} />
-            ))}
+            {isLive
+              ? livePageItems.map((l) => <RentCastCard key={l.id} listing={l} />)
+              : pageItems.map((l) => <ListingCard key={l.id} listing={l} saved={saved.has(l.id)} />)}
           </div>
 
           {/* Pagination */}
