@@ -124,3 +124,20 @@ export function isSafeHttpUrl(s: string): boolean {
     return false;
   }
 }
+
+export type ShareExpiry = "never" | "1h" | "24h" | "7d" | "30d";
+
+const EXPIRY_MS: Record<Exclude<ShareExpiry, "never">, number> = {
+  "1h": 3600e3,
+  "24h": 24 * 3600e3,
+  "7d": 7 * 24 * 3600e3,
+  "30d": 30 * 24 * 3600e3,
+};
+
+export function expiryToDate(v: string, now: number = Date.now()): string | null {
+  if (v === "never") return null;
+  const ms = EXPIRY_MS[v as Exclude<ShareExpiry, "never">];
+  if (!ms) return null;
+  return new Date(now + ms).toISOString();
+}
+
