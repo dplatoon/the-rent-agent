@@ -47,10 +47,17 @@ export function AgentMap({ agents, compact = false }: { agents: Agent[]; compact
             {a.is_online && (
               <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-mint border-2 border-background animate-pulse" />
             )}
-            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap z-10">
-              <div className="bg-elevated border border-border rounded-lg px-3 py-2 shadow-xl">
-                <div className="font-bold text-sm">{a.name}</div>
-                <div className="font-mono text-[10px] text-muted-foreground">{a.state} · {a.specialty}</div>
+            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition pointer-events-none z-10">
+              <div className="bg-elevated border border-border rounded-lg px-3 py-2 shadow-xl max-w-[220px]">
+                <div className="font-bold text-sm whitespace-nowrap">{a.name}</div>
+                <div className="font-mono text-[10px] text-muted-foreground whitespace-nowrap">
+                  {a.state}{(a as any).major_city ? ` · ${(a as any).major_city}` : ""} · {a.specialty}
+                </div>
+                {(a as any).catchphrase && (
+                  <div className="text-[11px] italic text-foreground/80 mt-1 leading-snug">
+                    "{(a as any).catchphrase}"
+                  </div>
+                )}
               </div>
             </div>
           </div>
