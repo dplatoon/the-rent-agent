@@ -100,6 +100,20 @@ function ImportsPage() {
     setLoading(false);
   };
   useEffect(() => { load(); refreshQuota(); /* eslint-disable-next-line */ }, []);
+  useEffect(() => {
+    const tick = () => { if (document.visibilityState === "visible") refreshQuota(); };
+    const interval = setInterval(tick, 60_000);
+    const onVis = () => { if (document.visibilityState === "visible") refreshQuota(); };
+    const onFocus = () => refreshQuota();
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("focus", onFocus);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("focus", onFocus);
+    };
+    // eslint-disable-next-line
+  }, []);
 
   const add = async (e: React.FormEvent) => {
     e.preventDefault();
