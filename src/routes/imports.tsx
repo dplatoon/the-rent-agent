@@ -51,6 +51,11 @@ function ImportsPage() {
   const [shareExpiry, setShareExpiry] = useState<string>("never");
   const [shareMask, setShareMask] = useState(false);
   const [savingShare, setSavingShare] = useState(false);
+  const [quota, setQuota] = useState<DraftQuota | null>(null);
+  const quotaFn = useServerFn(getDraftQuota);
+  const refreshQuota = async () => {
+    try { setQuota(await quotaFn({})); } catch { /* ignore */ }
+  };
 
   const openShare = (l: ExternalListing) => {
     setShareItem(l);
