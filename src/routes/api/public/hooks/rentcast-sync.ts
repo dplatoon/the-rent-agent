@@ -91,7 +91,7 @@ export const Route = createFileRoute('/api/public/hooks/rentcast-sync')({
                 price: l.price ?? null,
                 property_type: l.propertyType ?? null,
                 status: (l.status ?? 'active').toLowerCase(),
-                raw: l as unknown as never,
+                raw: l as unknown as Record<string, unknown>,
                 last_seen_at: startedAt.toISOString(),
               }))
 
