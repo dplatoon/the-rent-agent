@@ -18,6 +18,37 @@ function clip(s: string | null | undefined, n: number) {
   return s.length > n ? s.slice(0, n) + "…" : s;
 }
 
+export type DraftQuota = {
+  tier: string;
+  used: number;
+  limit: number;
+  remaining: number;
+  reset_at: string; // ISO; when the 24h window rolls over
+};
+
+export const DRAFT_DAILY_LIMIT = 10;
+
+export const getDraftQuota = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<DraftQuota> => {
+    const { supabase, userId } = context;
+    const { data: p } = await supabase
+      .from("profiles")
+      .select("tier,daily_draft_count,daily_draft_reset_at")
+      .eq("id", userId)
+      .maybeSingle();
+
+    const tier = p?.tier ?? "free";
+    const resetStart = p?.daily_draft_reset_at ? new Date(p.daily_draft_reset_at) : new Date();
+    const now = Date.now();
+    const expired = now - resetStart.getTime() > 24 * 3600e3;
+    const used = expired ? 0 : (p?.daily_draft_count ?? 0);
+    const limit = DRAFT_DAILY_LIMIT;
+    const reset_at = new Date((expired ? now : resetStart.getTime()) + 24 * 3600e3).toISOString();
+    const remaining = tier === "free" ? Math.max(limit - used, 0) : limit;
+    return { tier, used: tier === "free" ? used : 0, limit, remaining, reset_at };
+  });
+
 export const draftAgentMessage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => Schema.parse(input))
