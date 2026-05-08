@@ -17,12 +17,15 @@ export type Database = {
       agents: {
         Row: {
           avatar_emoji: string
+          avatar_image_url: string | null
           bio: string
+          catchphrase: string | null
           color: string
           created_at: string
           greeting: string
           id: string
           is_online: boolean
+          major_city: string | null
           map_x: number
           map_y: number
           name: string
@@ -34,12 +37,15 @@ export type Database = {
         }
         Insert: {
           avatar_emoji: string
+          avatar_image_url?: string | null
           bio: string
+          catchphrase?: string | null
           color: string
           created_at?: string
           greeting: string
           id: string
           is_online?: boolean
+          major_city?: string | null
           map_x: number
           map_y: number
           name: string
@@ -51,12 +57,15 @@ export type Database = {
         }
         Update: {
           avatar_emoji?: string
+          avatar_image_url?: string | null
           bio?: string
+          catchphrase?: string | null
           color?: string
           created_at?: string
           greeting?: string
           id?: string
           is_online?: boolean
+          major_city?: string | null
           map_x?: number
           map_y?: number
           name?: string
