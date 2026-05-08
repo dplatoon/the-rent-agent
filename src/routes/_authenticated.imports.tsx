@@ -302,6 +302,9 @@ function ImportsPage() {
                   <a href={l.url} target="_blank" rel="noopener noreferrer">
                     <Button size="sm" variant="ghost"><ExternalLink className="h-3 w-3" /></Button>
                   </a>
+                  <Button size="sm" variant="ghost" onClick={() => copyShare(l.share_token)} title="Copy share link">
+                    <Copy className="h-3 w-3" />
+                  </Button>
                   <Button size="sm" variant="ghost" onClick={() => openShare(l)} title="Share settings">
                     <Share2 className="h-3 w-3" />
                   </Button>
