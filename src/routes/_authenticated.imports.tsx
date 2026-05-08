@@ -22,7 +22,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 
-export const Route = createFileRoute("/imports")({
+export const Route = createFileRoute("/_authenticated/imports")({
   head: () => ({
     meta: [
       { title: "Imported Listings — RentAgent.io" },
@@ -202,9 +202,7 @@ function ImportsPage() {
       <p className="text-muted-foreground mb-8 max-w-2xl">
         Paste a link from Zillow, Apartments.com, Rent.com, Craigslist, Facebook Marketplace, Trulia, Redfin, HotPads, or Realtor.com. Your agent can then draft tour requests, application letters, and compare them for you.
       </p>
-
       <DraftQuotaWidget quota={quota} />
-
       {/* Add form */}
       <form onSubmit={add} className="rounded-2xl border border-border bg-card p-5 mb-8 space-y-3">
         <div className="flex items-center gap-2 text-sm font-mono text-muted-foreground">
@@ -234,7 +232,6 @@ function ImportsPage() {
           </Button>
         </div>
       </form>
-
       {/* Quick actions bar */}
       {items.length > 0 && (
         <div className="rounded-xl border border-border bg-elevated/50 p-3 mb-6 flex flex-wrap items-center gap-2">
@@ -256,7 +253,6 @@ function ImportsPage() {
           </Link>
         </div>
       )}
-
       {loading ? (
         <div className="text-muted-foreground">Loading…</div>
       ) : items.length === 0 ? (
@@ -306,6 +302,9 @@ function ImportsPage() {
                   <a href={l.url} target="_blank" rel="noopener noreferrer">
                     <Button size="sm" variant="ghost"><ExternalLink className="h-3 w-3" /></Button>
                   </a>
+                  <Button size="sm" variant="ghost" onClick={() => copyShare(l.share_token)} title="Copy share link">
+                    <Copy className="h-3 w-3" />
+                  </Button>
                   <Button size="sm" variant="ghost" onClick={() => openShare(l)} title="Share settings">
                     <Share2 className="h-3 w-3" />
                   </Button>
@@ -318,7 +317,6 @@ function ImportsPage() {
           })}
         </div>
       )}
-
       {/* Draft modal */}
       {draftOpen && (
         <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setDraftOpen(null)}>
@@ -354,7 +352,6 @@ function ImportsPage() {
           </div>
         </div>
       )}
-
       {/* Share settings dialog */}
       <Dialog open={!!shareItem} onOpenChange={(o) => !o && setShareItem(null)}>
         <DialogContent className="max-w-md">
@@ -434,7 +431,7 @@ function ImportsPage() {
         </DialogContent>
       </Dialog>
     </main>
-  );
+  )
 }
 
 function DraftQuotaWidget({ quota }: { quota: DraftQuota | null }) {

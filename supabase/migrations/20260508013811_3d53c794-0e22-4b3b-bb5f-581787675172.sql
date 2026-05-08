@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_reminders_user_due ON public.reminders(user_id, due_at);

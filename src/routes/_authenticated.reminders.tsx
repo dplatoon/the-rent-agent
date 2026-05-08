@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Calendar, Check, Trash2, Plus } from "lucide-react";
 
-export const Route = createFileRoute("/reminders")({
+export const Route = createFileRoute("/_authenticated/reminders")({
   head: () => ({
     meta: [
       { title: "Reminders — RentAgent.io" },

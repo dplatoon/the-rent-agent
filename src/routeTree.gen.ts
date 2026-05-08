@@ -9,30 +9,21 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SavedRouteImport } from './routes/saved'
-import { Route as RemindersRouteImport } from './routes/reminders'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as MapRouteImport } from './routes/map'
 import { Route as ListingsRouteImport } from './routes/listings'
-import { Route as ImportsRouteImport } from './routes/imports'
-import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ListingsIdRouteImport } from './routes/listings_.$id'
 import { Route as AgentStateRouteImport } from './routes/agent.$state'
+import { Route as AuthenticatedSavedRouteImport } from './routes/_authenticated.saved'
+import { Route as AuthenticatedRemindersRouteImport } from './routes/_authenticated.reminders'
+import { Route as AuthenticatedImportsRouteImport } from './routes/_authenticated.imports'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
 import { Route as ImportsShareTokenRouteImport } from './routes/imports.share.$token'
 
-const SavedRoute = SavedRouteImport.update({
-  id: '/saved',
-  path: '/saved',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RemindersRoute = RemindersRouteImport.update({
-  id: '/reminders',
-  path: '/reminders',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
@@ -48,16 +39,6 @@ const ListingsRoute = ListingsRouteImport.update({
   path: '/listings',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ImportsRoute = ImportsRouteImport.update({
-  id: '/imports',
-  path: '/imports',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -66,6 +47,10 @@ const AuthRoute = AuthRouteImport.update({
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -83,23 +68,43 @@ const AgentStateRoute = AgentStateRouteImport.update({
   path: '/agent/$state',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedSavedRoute = AuthenticatedSavedRouteImport.update({
+  id: '/saved',
+  path: '/saved',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedRemindersRoute = AuthenticatedRemindersRouteImport.update({
+  id: '/reminders',
+  path: '/reminders',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedImportsRoute = AuthenticatedImportsRouteImport.update({
+  id: '/imports',
+  path: '/imports',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const ImportsShareTokenRoute = ImportsShareTokenRouteImport.update({
-  id: '/share/$token',
-  path: '/share/$token',
-  getParentRoute: () => ImportsRoute,
+  id: '/imports/share/$token',
+  path: '/imports/share/$token',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
-  '/dashboard': typeof DashboardRoute
-  '/imports': typeof ImportsRouteWithChildren
   '/listings': typeof ListingsRoute
   '/map': typeof MapRoute
   '/pricing': typeof PricingRoute
-  '/reminders': typeof RemindersRoute
-  '/saved': typeof SavedRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/imports': typeof AuthenticatedImportsRoute
+  '/reminders': typeof AuthenticatedRemindersRoute
+  '/saved': typeof AuthenticatedSavedRoute
   '/agent/$state': typeof AgentStateRoute
   '/listings/$id': typeof ListingsIdRoute
   '/imports/share/$token': typeof ImportsShareTokenRoute
@@ -108,13 +113,13 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
-  '/dashboard': typeof DashboardRoute
-  '/imports': typeof ImportsRouteWithChildren
   '/listings': typeof ListingsRoute
   '/map': typeof MapRoute
   '/pricing': typeof PricingRoute
-  '/reminders': typeof RemindersRoute
-  '/saved': typeof SavedRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/imports': typeof AuthenticatedImportsRoute
+  '/reminders': typeof AuthenticatedRemindersRoute
+  '/saved': typeof AuthenticatedSavedRoute
   '/agent/$state': typeof AgentStateRoute
   '/listings/$id': typeof ListingsIdRoute
   '/imports/share/$token': typeof ImportsShareTokenRoute
@@ -122,15 +127,16 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
-  '/dashboard': typeof DashboardRoute
-  '/imports': typeof ImportsRouteWithChildren
   '/listings': typeof ListingsRoute
   '/map': typeof MapRoute
   '/pricing': typeof PricingRoute
-  '/reminders': typeof RemindersRoute
-  '/saved': typeof SavedRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/imports': typeof AuthenticatedImportsRoute
+  '/_authenticated/reminders': typeof AuthenticatedRemindersRoute
+  '/_authenticated/saved': typeof AuthenticatedSavedRoute
   '/agent/$state': typeof AgentStateRoute
   '/listings_/$id': typeof ListingsIdRoute
   '/imports/share/$token': typeof ImportsShareTokenRoute
@@ -141,11 +147,11 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/auth'
-    | '/dashboard'
-    | '/imports'
     | '/listings'
     | '/map'
     | '/pricing'
+    | '/dashboard'
+    | '/imports'
     | '/reminders'
     | '/saved'
     | '/agent/$state'
@@ -156,11 +162,11 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/auth'
-    | '/dashboard'
-    | '/imports'
     | '/listings'
     | '/map'
     | '/pricing'
+    | '/dashboard'
+    | '/imports'
     | '/reminders'
     | '/saved'
     | '/agent/$state'
@@ -169,15 +175,16 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
     | '/about'
     | '/auth'
-    | '/dashboard'
-    | '/imports'
     | '/listings'
     | '/map'
     | '/pricing'
-    | '/reminders'
-    | '/saved'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/imports'
+    | '/_authenticated/reminders'
+    | '/_authenticated/saved'
     | '/agent/$state'
     | '/listings_/$id'
     | '/imports/share/$token'
@@ -185,35 +192,19 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRoute
-  DashboardRoute: typeof DashboardRoute
-  ImportsRoute: typeof ImportsRouteWithChildren
   ListingsRoute: typeof ListingsRoute
   MapRoute: typeof MapRoute
   PricingRoute: typeof PricingRoute
-  RemindersRoute: typeof RemindersRoute
-  SavedRoute: typeof SavedRoute
   AgentStateRoute: typeof AgentStateRoute
   ListingsIdRoute: typeof ListingsIdRoute
+  ImportsShareTokenRoute: typeof ImportsShareTokenRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/saved': {
-      id: '/saved'
-      path: '/saved'
-      fullPath: '/saved'
-      preLoaderRoute: typeof SavedRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reminders': {
-      id: '/reminders'
-      path: '/reminders'
-      fullPath: '/reminders'
-      preLoaderRoute: typeof RemindersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/pricing': {
       id: '/pricing'
       path: '/pricing'
@@ -235,20 +226,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ListingsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/imports': {
-      id: '/imports'
-      path: '/imports'
-      fullPath: '/imports'
-      preLoaderRoute: typeof ImportsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -261,6 +238,13 @@ declare module '@tanstack/react-router' {
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -284,40 +268,73 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgentStateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/saved': {
+      id: '/_authenticated/saved'
+      path: '/saved'
+      fullPath: '/saved'
+      preLoaderRoute: typeof AuthenticatedSavedRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/reminders': {
+      id: '/_authenticated/reminders'
+      path: '/reminders'
+      fullPath: '/reminders'
+      preLoaderRoute: typeof AuthenticatedRemindersRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/imports': {
+      id: '/_authenticated/imports'
+      path: '/imports'
+      fullPath: '/imports'
+      preLoaderRoute: typeof AuthenticatedImportsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/imports/share/$token': {
       id: '/imports/share/$token'
-      path: '/share/$token'
+      path: '/imports/share/$token'
       fullPath: '/imports/share/$token'
       preLoaderRoute: typeof ImportsShareTokenRouteImport
-      parentRoute: typeof ImportsRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
 
-interface ImportsRouteChildren {
-  ImportsShareTokenRoute: typeof ImportsShareTokenRoute
+interface AuthenticatedRouteChildren {
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedImportsRoute: typeof AuthenticatedImportsRoute
+  AuthenticatedRemindersRoute: typeof AuthenticatedRemindersRoute
+  AuthenticatedSavedRoute: typeof AuthenticatedSavedRoute
 }
 
-const ImportsRouteChildren: ImportsRouteChildren = {
-  ImportsShareTokenRoute: ImportsShareTokenRoute,
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedImportsRoute: AuthenticatedImportsRoute,
+  AuthenticatedRemindersRoute: AuthenticatedRemindersRoute,
+  AuthenticatedSavedRoute: AuthenticatedSavedRoute,
 }
 
-const ImportsRouteWithChildren =
-  ImportsRoute._addFileChildren(ImportsRouteChildren)
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AboutRoute: AboutRoute,
   AuthRoute: AuthRoute,
-  DashboardRoute: DashboardRoute,
-  ImportsRoute: ImportsRouteWithChildren,
   ListingsRoute: ListingsRoute,
   MapRoute: MapRoute,
   PricingRoute: PricingRoute,
-  RemindersRoute: RemindersRoute,
-  SavedRoute: SavedRoute,
   AgentStateRoute: AgentStateRoute,
   ListingsIdRoute: ListingsIdRoute,
+  ImportsShareTokenRoute: ImportsShareTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

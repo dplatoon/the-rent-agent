@@ -1,103 +1,93 @@
-# Core Audit — Bugs, Errors, Gaps
+# Master Audit — Status & Next Plan
 
-Focused on the recently shipped imports / share / reminders / agent-draft slice (the area most likely to harbor regressions). Severity in brackets.
+## ✅ What's complete
 
-## 🔴 Critical security bugs
+**Share workflow (end-to-end)**
 
-### 1. `external_listings` is publicly readable end-to-end — token check is fake
-`supabase/migrations/...142609.sql`:
-```sql
-create policy "public view by share token"
-  on public.external_listings for select
-  using (true);
-```
-The comment claims "token is unguessable uuid; app only queries `.eq('share_token', token)`." That's wrong — **RLS doesn't enforce a client query filter**. `using (true)` lets any anonymous user run `select * from external_listings` and dump every user's saved URLs, notes, prices, locations, share tokens, and `user_id`s.
+- `external_listings.share_token` (uuid) generated per row.
+- Owner opens **Share dialog** in `/imports` → picks expiry (`never / 1h / 24h / 7d / 30d`) + toggles "Hide sensitive details" (notes, exact address, original URL).
+- Settings persist to `share_expires_at` + `share_mask_sensitive` columns.
+- Public viewer at `/imports/share/$token`:
+  - Calls SECURITY DEFINER RPC `get_shared_listing(_token uuid)`.
+  - Server enforces expiry → returns `expired=true` row → UI shows "Link expired" with timestamp.
+  - Server enforces masking → strips `notes`, `url`, and reduces `location` to last comma segment.
+  - Invalid/unknown token → "Link not found".
+  - Page is `noindex`, includes copy-link button.
+- Row badges in `/imports` list show `MASKED` and `EXPIRES` indicators.
 
-Fix: replace with a token-bound predicate, e.g.
-```sql
-using (share_token::text = current_setting('request.jwt.claims', true)::json->>'share_token'
-       OR auth.uid() = user_id)
-```
-or — simpler and matches the actual flow — drop the public SELECT policy entirely and serve shares through a SECURITY DEFINER RPC `get_shared_listing(token uuid)` that returns one row, enforces expiration, and applies masking server-side.
+**Security hardening (audit items #1–#3, #8–#10)**
 
-### 2. Share expiration is enforced only in the browser
-`src/lib/external-listings.ts::fetchSharedImport` checks `share_expires_at` after fetching. With #1 fixed via RLS, an attacker can still bypass the check by calling Supabase REST directly — the row is returned regardless of expiry. Expiration must be enforced in SQL (`using (share_expires_at is null or share_expires_at > now())`) or in the SECURITY DEFINER RPC.
+- Dropped bogus public `SELECT` on `external_listings`; access only via RPC.
+- URL validation: client (`isSafeHttpUrl`) + DB trigger (`http(s)://` only, ≤2048 chars).
+- Length caps + 500-row per-user cap on `external_listings` and `reminders` (validation triggers, not CHECK constraints).
+- Memory updated: shared-listing RPC contract is invariant.
 
-### 3. Sensitive-info masking is also client-side only
-`maskSensitive()` runs in the browser. The full row (notes, exact `location`, original `url`) is sent over the wire and visible in DevTools/network even when "Hide sensitive details" is on. Must be done in the same RPC so the server returns only the redacted projection.
+**Agent-draft architecture (audit #4, #6)**
 
-## 🟠 High-severity bugs
+- Migrated `agent-draft` edge function → `src/lib/agent-draft.functions.ts` (`createServerFn` + `requireSupabaseAuth`).
+- Daily quota via `consume_daily_draft` RPC (10/day free, unlimited paid, 24h rolling reset).
+- Quota widget on `/imports` with progress bar, tier label, time-to-reset, upgrade CTA.
+- Auto-refresh: 60s interval + `visibilitychange` + `focus`.
+- Edge function + `[functions.agent-draft]` config removed.
 
-### 4. `agent-draft` edge function is dead code in this stack
-The project knowledge says: **Do NOT use Supabase Edge Functions in TanStack Start; use `createServerFn`.** `supabase/functions/agent-draft/index.ts` exists and `imports.tsx` POSTs to `/functions/v1/agent-draft`. This works today but violates the architecture rule, complicates auth, and skips the platform's normal request pipeline. Should be ported to `src/lib/agent-draft.functions.ts` with `requireSupabaseAuth` middleware.
+---
 
-### 5. Origin allowlist hardcodes a preview URL
-`agent-draft/index.ts` hardcodes `id-preview--0632b21f-...lovable.app`. The regex `^https:\/\/[a-z0-9-]+\.lovable\.app$` already covers it; the hardcoded string will rot if the project ID changes. Same for `the-rent-agent.lovable.app` if the user renames.
+## 🟡 Remaining gaps (from audit, not yet shipped)
 
-### 6. No rate limiting on `agent-draft`
-Anyone with a session can spam tour/application/compare drafts and burn LOVABLE_API_KEY credits. There's a `consume_daily_chat()` function for the chat tier — drafts should consume the same (or a sibling) quota. Currently unbounded.
+### High
 
-### 7. `Listing comparison` modal will open and stay open even on AI failure for non-rate-limit/payment errors
-In `runDraft`, on `!r.ok` it sets `setDraftOpen(null)` — good. But on a thrown network error (catch branch) it also closes and toasts — fine. However the `finally { setDrafting(false) }` runs after `setDraftOpen(null)`, leaving an instant where `drafting=false` and `draftOpen=null` together — okay, but `draftText` is never cleared on subsequent open if a previous run succeeded. Re-opening "Compare" briefly flashes the old draft text before the new request resolves. Clear `draftText` on open, not on success.
+1. **Route auth gating** — `/imports`, `/reminders`, `/saved`, `/dashboard` still redirect from inside `useEffect`. Should use `_authenticated/` layout with `beforeLoad` so loaders/server fns don't 401 on first paint and there's no flash of authed UI.
+2. `**agent-draft` prompt size** — for `compare` with 4 listings, `notes` is concatenated unbounded. Cap each listing's notes to ~300 chars before stitching.
+3. `**reminders` indexing** — missing index on `(user_id, due_at)` for ordered queries; also no upper bound on `due_at`.
 
-### 8. No URL validation in the imports `add()` beyond `new URL(...)`
-A user can save `javascript:alert(1)` — passes `new URL`, gets stored, then `<a href={item.url}>` on the share page runs script when clicked. Restrict to `http:`/`https:` only.
+### Medium
 
-### 9. No length / count caps on `external_listings.notes`, `title`, `location`, `url`
-A single user can store unlimited rows of unbounded text. Add column length checks (`url` ≤ 2048, `title` ≤ 200, `location` ≤ 200, `notes` ≤ 2000) and a per-user row cap (e.g., 200) via trigger.
+4. **Compare draft flash** — re-opening Compare briefly shows previous `draftText`. Already partly handled (`setDraftText("")` in `runDraft`); verify and add reset on dialog close too.
+5. **Quick-copy share button regression** — old one-click copy was replaced by settings dialog. Add a split: primary click = copy link, secondary icon = open settings.
+6. `**useEffect(() => load(), [])` pattern** in 3 routes — wrap `load` in `useCallback` or move to a query lib (`@tanstack/react-query`).
+7. **Share page `og:` tags** — currently blank social previews. Either add server-rendered preview or document as intentional.
+8. **No tests** for `external-listings.ts`, `imports`, `reminders`, or `agent-draft.functions.ts`.
 
-### 10. `reminders` has no validation either
-- `due_at` can be any past date with no bound.
-- `title`/`notes` unbounded.
-- No row cap.
-- Missing index on `(user_id, due_at)` for the ordered query in `RemindersPage.load`.
+### Low / polish
 
-## 🟡 Medium
+9. `imports.tsx` `setTimeout` cleanup for "copied" state on share page (minor leak).
+10. `expiryToDate` exhaustive type for unknown values.
+11. Document threat model on share page: "soft hide" (price + bd/ba still visible, URL search can leak address).
 
-### 11. Race-condition / no auth gate on routes
-`/imports`, `/reminders`, `/saved`, `/dashboard` all redirect to `/auth` from inside a `useEffect`. Page renders form/buttons for a tick before redirect, and the loader of any future server-fn would 401. Per the project's TanStack guidance, gate via the `_authenticated` layout pattern (or at minimum `beforeLoad: () => supabase.auth.getUser()`). Same memo notes "Client-side-only auth checks on /dashboard and /saved are acceptable" — but new routes (`/imports`, `/reminders`) inherit the same pattern; document or fix consistently.
+---
 
-### 12. Share page shows the same "expired" message for two different states pre-fix
-Currently distinguishes `expired` vs `missing` — good. But because of bug #1, even a deleted/expired link still resolves (any row is readable). Fix #1 first.
+## 🎯 Proposed next build pass
 
-### 13. `share_mask_sensitive` mask leaves price + bedrooms/bathrooms exposed
-"Hide sensitive details" hides notes + URL + reduces location to last comma segment. Price and bd/ba pass through. If "sensitive" includes contact info, the original URL itself often contains the listing id which a viewer can search to recover the address. Document the threat model — mask is "soft hide" not "private."
+Pick **one** of these focused slices — recommend Slice A (highest user-visible + security ROI):
 
-### 14. Copy-share button in the imports list was replaced by a settings dialog opener; users lose the one-click copy
-Old behavior: click Share2 → copies link. New behavior: click → opens dialog → click Copy. One extra click. Consider a split button or keep a quick-copy in the row and put settings on a secondary icon.
+### Slice A — Auth gating + share UX polish (recommended)
 
-### 15. `useEffect(() => { load(); }, [])` with `// eslint-disable-next-line` in 3 routes
-Fragile pattern — `load` closes over `navigate`. Wrap in `useCallback` or move into a query lib. Same bug exists in `imports.tsx`, `reminders.tsx`, `saved.tsx`.
+1. Create `src/routes/_authenticated.tsx` layout with `beforeLoad` session check → redirect `/auth`.
+2. Move `/imports`, `/reminders`, `/saved`, `/dashboard` under `_authenticated/`.
+3. Restore one-click copy on the share button in the imports list (split: copy on click, settings on long-press / secondary icon).
+4. Cap `compare` prompt notes to 300 chars in `agent-draft.functions.ts`.
+5. Add `(user_id, due_at)` index on `reminders` (migration).
 
-### 16. `agent-draft` accepts up to 4 listings but truncates prompts blindly
-For `compare` with 4 listings each having long notes, the prompt may exceed reasonable token budgets. Cap each listing's `notes` to ~300 chars before stitching.
+### Slice B — Test coverage
 
-### 17. `external_listings` has no `title`/`url` not-null constraints on the storage layer that match UI assumptions
-UI shows `l.title || l.url`, fine; but `share` page renders `item.url` in an `<a>` with no validation against bug #8.
+1. Vitest tests for `get_shared_listing` RPC (valid / expired / masked / missing / bad uuid).
+2. Tests for `isSafeHttpUrl`, `detectSource`, `expiryToDate`.
+3. Server fn tests for `draftAgentMessage` quota paths (allowed, exhausted, paid tier).
 
-### 18. `imports.share.$token.tsx` uses `setTimeout` for "copied" reset without cleanup
-Minor leak if user navigates away mid-toast.
+### Slice C — Share page polish
 
-### 19. SEO/meta on share page is `noindex` — good — but no `og:` tags, so social previews are blank. Either add a server-rendered share preview or leave intentionally blank and document.
+1. Add `og:` / `twitter:` meta on share page (server-rendered title, price, location).
+2. Document threat model inline.
+3. Cleanup `setTimeout`, exhaustive expiry type.
 
-### 20. No tests for any of: `external-listings.ts`, `imports` route, `reminders` route, `agent-draft` edge function. Existing `*.test.ts` cover only agents/pwa-telemetry.
+### Technical notes
 
-## 🟢 Low / polish
+- `_authenticated` layout uses `supabase.auth.getUser()` in `beforeLoad` — see TanStack Supabase integration doc in context. Critical for any future server fn loaders.
+- Compare-prompt cap goes in `agent-draft.functions.ts` `.handler()` before stitching listing rows.
+- Reminders index: `CREATE INDEX idx_reminders_user_due ON public.reminders(user_id, due_at);`
 
-- `imports.tsx` line 150 builds the function URL with `import.meta.env.VITE_SUPABASE_URL` then path `/functions/v1/agent-draft` — works, but should use the supabase client's `functions.invoke()` to get auto auth + retry semantics.
-- `external-listings.ts::SOURCE_META` colors use raw hex (`#006AFF`) in the share page via inline style — violates the design-token rule. Acceptable here because brand colors are external, but should be acknowledged.
-- `shareExpiry` state initializer is `"never"`, but `openShare` overwrites — fine; just dead-init noise on first render.
-- `expiryToDate` returns `null` for unknown values silently. Add an exhaustive type.
-- `ExternalListing.share_mask_sensitive` defaults to `false` server-side ✅ but the imports list UI gives no visual indicator that masking is on for a row. Add a small `EyeOff` badge next to rows where it's enabled.
-- `fetchSharedImport` always selects `*` — returns `user_id`, `share_token`, `created_at`, etc. to anonymous viewers (compounds bug #1). Even after the RPC fix, project only the public fields.
+---
 
-## Suggested fix order
+**Which slice should I build next?** (A recommended.) Ok Lets do whaen done share me sext step
 
-1. **Critical, same migration**: drop the bogus public SELECT policy on `external_listings`; add a SECURITY DEFINER RPC `get_shared_listing(token uuid)` that enforces expiry + masking + projects only public columns. Update `fetchSharedImport` to call it.
-2. Lock down stored URLs to `http(s):` (UI + SQL CHECK).
-3. Add length caps + per-user row caps for `external_listings` and `reminders`.
-4. Move `agent-draft` to `createServerFn` and add a draft quota.
-5. Switch route auth to `_authenticated` layout.
-6. Tests for the shared-listing flow (expired, masked, missing, valid).
-
-If you want, I can start with #1–#3 (the security-critical migration + URL hardening) as the first build pass, then tackle the architecture cleanup separately.
+&nbsp;
