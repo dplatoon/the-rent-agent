@@ -71,11 +71,6 @@ function ImportsPage() {
     }
   };
 
-  const expiryToDate = (v: string): string | null => {
-    const map: Record<string, number> = { "1h": 3600e3, "24h": 24 * 3600e3, "7d": 7 * 24 * 3600e3, "30d": 30 * 24 * 3600e3 };
-    if (v === "never" || !map[v]) return null;
-    return new Date(Date.now() + map[v]).toISOString();
-  };
 
   const saveShareSettings = async () => {
     if (!shareItem) return;
