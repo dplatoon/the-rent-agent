@@ -421,3 +421,67 @@ function ImportsPage() {
     </main>
   );
 }
+
+function DraftQuotaWidget({ quota }: { quota: DraftQuota | null }) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(t);
+  }, []);
+
+  if (!quota) {
+    return (
+      <div className="rounded-xl border border-border bg-card/50 p-4 mb-6 animate-pulse h-[88px]" aria-hidden />
+    );
+  }
+
+  const isPaid = quota.tier !== "free";
+  const pct = isPaid ? 100 : Math.round(((quota.limit - quota.remaining) / quota.limit) * 100);
+  const resetMs = new Date(quota.reset_at).getTime() - now;
+  const fmtReset = () => {
+    if (resetMs <= 0) return "now";
+    const h = Math.floor(resetMs / 3600e3);
+    const m = Math.floor((resetMs % 3600e3) / 60e3);
+    if (h >= 1) return `${h}h ${m}m`;
+    return `${m}m`;
+  };
+  const low = !isPaid && quota.remaining <= 3;
+  const empty = !isPaid && quota.remaining === 0;
+
+  return (
+    <div className={`rounded-xl border p-4 mb-6 ${empty ? "border-destructive/40 bg-destructive/5" : low ? "border-primary/40 bg-primary/5" : "border-border bg-card"}`}>
+      <div className="flex items-center justify-between gap-3 mb-2">
+        <div className="flex items-center gap-2">
+          <Sparkles className={`h-4 w-4 ${empty ? "text-destructive" : "text-primary"}`} />
+          <div className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground">DAILY DRAFT QUOTA</div>
+        </div>
+        <div className="text-xs font-mono text-muted-foreground inline-flex items-center gap-1">
+          <Clock className="h-3 w-3" />
+          {isPaid ? "Unlimited" : <>Resets in <span className="text-foreground">{fmtReset()}</span></>}
+        </div>
+      </div>
+      <div className="flex items-baseline justify-between mb-2">
+        <div>
+          <span className="text-2xl font-bold">{isPaid ? "∞" : quota.remaining}</span>
+          <span className="text-sm text-muted-foreground ml-1">
+            {isPaid ? "drafts" : `of ${quota.limit} left today`}
+          </span>
+        </div>
+        <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+          Tier: <span className="text-foreground">{quota.tier}</span>
+        </span>
+      </div>
+      {!isPaid && (
+        <>
+          <Progress value={100 - pct} className={empty ? "[&>div]:bg-destructive" : ""} />
+          {empty && (
+            <p className="text-xs text-muted-foreground mt-2">
+              You've used all 10 drafts today.{" "}
+              <Link to="/pricing" className="text-primary hover:underline">Upgrade</Link> for unlimited.
+            </p>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
