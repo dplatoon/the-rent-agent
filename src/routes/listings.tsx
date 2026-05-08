@@ -45,9 +45,10 @@ export const Route = createFileRoute("/listings")({
 function ListingsPage() {
   const navigate = useNavigate({ from: "/listings" });
   const search = Route.useSearch();
-  const { q, state, beds, maxPrice, pets, furnished, sort, page, perPage } = search;
+  const { q, state, beds, maxPrice, pets, furnished, sort, page, perPage, source } = search;
 
   const [listings, setListings] = useState<Listing[]>([]);
+  const [liveListings, setLiveListings] = useState<RentcastListing[]>([]);
   const [agents, setAgents] = useState<{ id: string; state: string }[]>([]);
   const [saved, setSaved] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
