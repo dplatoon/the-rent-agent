@@ -168,6 +168,7 @@ function ImportsPage() {
       if (typeof r.remaining === "number" && r.tier === "free" && r.remaining <= 3) {
         toast.message(`${r.remaining} drafts left today`);
       }
+      refreshQuota();
     } catch (e: any) {
       toast.error(e?.message || "Failed");
       setDraftOpen(null);
