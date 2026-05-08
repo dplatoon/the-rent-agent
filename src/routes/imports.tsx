@@ -98,7 +98,7 @@ function ImportsPage() {
     try { setItems(await listImports()); } catch (e: any) { toast.error(e.message); }
     setLoading(false);
   };
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
+  useEffect(() => { load(); refreshQuota(); /* eslint-disable-next-line */ }, []);
 
   const add = async (e: React.FormEvent) => {
     e.preventDefault();
