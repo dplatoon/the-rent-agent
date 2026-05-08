@@ -46,7 +46,13 @@ function MapPage() {
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {agents.map((a) => (
-            <div key={a.id} className="flex items-start gap-3 rounded-lg border border-border/60 bg-card/60 p-3">
+            <Link
+              key={a.id}
+              to="/agent/$state"
+              params={{ state: a.id.toLowerCase() }}
+              className="flex items-start gap-3 rounded-lg border border-border/60 bg-card/60 p-3 hover:bg-card hover:border-primary/40 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              aria-label={`Chat with ${a.name} in ${(a as any).major_city || a.state}`}
+            >
               <span
                 className="mt-1 inline-block w-3 h-3 rounded-full shrink-0"
                 style={{ background: a.color, boxShadow: `0 0 10px ${a.color}aa` }}
@@ -64,7 +70,7 @@ function MapPage() {
                   </p>
                 )}
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </section>
