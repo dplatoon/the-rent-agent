@@ -4,7 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchAgent } from "@/lib/agents";
 import { getAgentAvatar } from "@/lib/agent-avatars";
 import { fetchListings, type Listing } from "@/lib/listings";
+import { fetchRentcastListings, type RentcastListing } from "@/lib/rentcast";
 import { ListingCard } from "@/components/ListingCard";
+import { RentCastCard } from "@/components/RentCastCard";
 import type { Database } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,10 +30,12 @@ function AgentChat() {
   const [sending, setSending] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const [agentListings, setAgentListings] = useState<Listing[]>([]);
+  const [liveListings, setLiveListings] = useState<RentcastListing[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchListings({ agent_id: state, limit: 4 }).then(setAgentListings).catch(() => {});
+    fetchRentcastListings({ agent_id: state, limit: 6 }).then(setLiveListings).catch(() => {});
   }, [state]);
 
   useEffect(() => {
