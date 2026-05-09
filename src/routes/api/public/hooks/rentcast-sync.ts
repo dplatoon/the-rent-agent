@@ -59,7 +59,27 @@ async function fetchStateListings(target: typeof AGENT_TARGETS[number], apiKey: 
 export const Route = createFileRoute('/api/public/hooks/rentcast-sync')({
   server: {
     handlers: {
-      POST: async () => {
+      POST: async ({ request }) => {
+        const syncSecret = process.env.SYNC_SECRET
+        if (!syncSecret) {
+          return new Response(JSON.stringify({ error: 'SYNC_SECRET not configured' }), {
+            status: 500, headers: { 'Content-Type': 'application/json' },
+          })
+        }
+        const provided = request.headers.get('x-sync-secret') ?? ''
+        // constant-time-ish comparison
+        const a = new TextEncoder().encode(provided)
+        const b = new TextEncoder().encode(syncSecret)
+        let ok = a.length === b.length
+        for (let i = 0; i < Math.max(a.length, b.length); i++) {
+          ok = ok && (a[i] === b[i % b.length])
+        }
+        if (!ok) {
+          return new Response(JSON.stringify({ error: 'unauthorized' }), {
+            status: 401, headers: { 'Content-Type': 'application/json' },
+          })
+        }
+
         const apiKey = process.env.RENTCAST_API_KEY
         if (!apiKey) {
           return new Response(JSON.stringify({ error: 'RENTCAST_API_KEY missing' }), {
