@@ -111,25 +111,66 @@ export const draftAgentMessage = createServerFn({ method: "POST" })
       compare: `Compare these ${items.length} listings side-by-side. Output as: brief pros/cons per listing in 1-2 lines each, then a final "Recommendation:" line with the best pick and why. Keep total under 220 words. Use plain text with simple bullets, no markdown headers.`,
     };
 
-    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: `You are a helpful rental assistant. Be concise, warm, and practical. Never invent prices or addresses not in the data.` },
-          { role: "user", content: `${profileLine}\n\n${summary}\n\nUser note: ${clip(extra, 500) || "(none)"}\n\nTask: ${prompts[kind]}` },
-        ],
-      }),
-    });
+    const systemPrompt = `You are a helpful rental assistant. Be concise, warm, and practical. Never invent prices or addresses not in the data.`;
+    const userPrompt = `${profileLine}\n\n${summary}\n\nUser note: ${clip(extra, 500) || "(none)"}\n\nTask: ${prompts[kind]}`;
 
-    if (!aiRes.ok) {
-      if (aiRes.status === 429) return { ok: false, error: "rate_limit" };
-      if (aiRes.status === 402) return { ok: false, error: "payment_required" };
-      console.error("ai err", aiRes.status, await aiRes.text());
-      return { ok: false, error: "server_error" };
+    // Anthropic primary, Lovable AI Gateway fallback.
+    const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+    let text = "";
+    let usedProvider: "anthropic" | "lovable" | null = null;
+
+    if (ANTHROPIC_API_KEY) {
+      try {
+        const r = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "x-api-key": ANTHROPIC_API_KEY,
+            "anthropic-version": "2023-06-01",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "claude-haiku-4-5",
+            max_tokens: 1024,
+            system: systemPrompt,
+            messages: [{ role: "user", content: userPrompt }],
+          }),
+        });
+        if (r.ok) {
+          const j = await r.json();
+          text = j.content?.map((b: any) => (b.type === "text" ? b.text : "")).join("") ?? "";
+          if (text) usedProvider = "anthropic";
+        } else {
+          console.error("anthropic err", r.status, await r.text().catch(() => ""));
+        }
+      } catch (e) {
+        console.error("anthropic fetch failed", e);
+      }
     }
-    const json = await aiRes.json();
-    const text = json.choices?.[0]?.message?.content ?? "";
+
+    if (!usedProvider) {
+      const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+        }),
+      });
+
+      if (!aiRes.ok) {
+        if (aiRes.status === 429) return { ok: false, error: "rate_limit" };
+        if (aiRes.status === 402) return { ok: false, error: "payment_required" };
+        console.error("ai err", aiRes.status, await aiRes.text());
+        return { ok: false, error: "server_error" };
+      }
+      const json = await aiRes.json();
+      text = json.choices?.[0]?.message?.content ?? "";
+      usedProvider = "lovable";
+    }
+
     return { ok: true, text, remaining: row.remaining ?? 0, tier: row.tier ?? "free" };
   });
+
