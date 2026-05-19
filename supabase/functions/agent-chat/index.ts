@@ -212,50 +212,102 @@ Begin in character.`;
     }
 
     let fullText = "";
+    let finishReason: string | null = null;
     const stream = new ReadableStream({
       async start(controller) {
         const reader = aiRes!.body!.getReader();
         const decoder = new TextDecoder();
         let buffer = "";
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          let idx;
-          while ((idx = buffer.indexOf("\n")) !== -1) {
-            let line = buffer.slice(0, idx);
-            buffer = buffer.slice(idx + 1);
-            if (line.endsWith("\r")) line = line.slice(0, -1);
-            if (!line.startsWith("data: ")) continue;
-            const data = line.slice(6).trim();
-            if (!data || data === "[DONE]") continue;
-            try {
-              const parsed = JSON.parse(data);
+
+        const emit = (obj: unknown) => {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(obj)}\n\n`));
+        };
+        const emitDelta = (delta: string, finish: string | null = null) => {
+          emit({ choices: [{ delta: { content: delta }, finish_reason: finish }] });
+        };
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            let idx;
+            while ((idx = buffer.indexOf("\n")) !== -1) {
+              let line = buffer.slice(0, idx);
+              buffer = buffer.slice(idx + 1);
+              if (line.endsWith("\r")) line = line.slice(0, -1);
+              if (!line || line.startsWith(":") || line.startsWith("event:")) continue;
+              if (!line.startsWith("data:")) continue;
+              const data = line.slice(5).trim();
+              if (!data) continue;
+              if (data === "[DONE]") {
+                // Pass through Lovable's terminator; Anthropic doesn't send it.
+                if (provider === "lovable") controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+                continue;
+              }
+              let parsed: any;
+              try { parsed = JSON.parse(data); } catch { continue; }
+
               if (provider === "anthropic") {
-                // Translate Anthropic events -> OpenAI-compatible chunk for the client.
-                if (parsed.type === "content_block_delta" && parsed.delta?.type === "text_delta") {
-                  const delta = parsed.delta.text as string;
-                  fullText += delta;
-                  const chunk = `data: ${JSON.stringify({ choices: [{ delta: { content: delta } }] })}\n`;
-                  controller.enqueue(encoder.encode(chunk));
+                // https://docs.anthropic.com/en/api/messages-streaming
+                switch (parsed.type) {
+                  case "message_start":
+                  case "content_block_start":
+                  case "ping":
+                    // No client payload required.
+                    break;
+                  case "content_block_delta": {
+                    const d = parsed.delta;
+                    if (d?.type === "text_delta" && typeof d.text === "string") {
+                      fullText += d.text;
+                      emitDelta(d.text);
+                    } else if (d?.type === "input_json_delta" && typeof d.partial_json === "string") {
+                      // Tool-use partial; surface as text so nothing is silently dropped.
+                      fullText += d.partial_json;
+                      emitDelta(d.partial_json);
+                    }
+                    break;
+                  }
+                  case "content_block_stop":
+                    break;
+                  case "message_delta":
+                    if (parsed.delta?.stop_reason) finishReason = String(parsed.delta.stop_reason);
+                    break;
+                  case "message_stop":
+                    // Emit a final OpenAI-style chunk carrying finish_reason, then [DONE].
+                    emitDelta("", finishReason ?? "stop");
+                    break;
+                  case "error":
+                    console.error("anthropic stream error", parsed.error);
+                    emit({ error: { message: parsed.error?.message ?? "stream_error" } });
+                    break;
+                  default:
+                    // Unknown event types: ignore silently for forward-compat.
+                    break;
                 }
                 continue;
               }
+
+              // Lovable / OpenAI-compatible: tap the delta for persistence, then forward verbatim.
               const delta = parsed.choices?.[0]?.delta?.content;
-              if (delta) fullText += delta;
-            } catch { /* ignore */ }
-            if (provider === "lovable") controller.enqueue(encoder.encode(line + "\n"));
+              if (typeof delta === "string") fullText += delta;
+              controller.enqueue(encoder.encode(line + "\n\n"));
+            }
           }
+        } catch (e) {
+          console.error("stream read error", e);
+        } finally {
+          // Always terminate with [DONE] so the client parser closes cleanly.
+          try { controller.enqueue(encoder.encode("data: [DONE]\n\n")); } catch { /* already closed */ }
+          controller.close();
+
+          await admin.from("messages").insert({ conversation_id, role: "agent", content: fullText });
+          await admin.from("conversations").update({
+            last_message_at: new Date().toISOString(),
+            message_count: (conv.message_count || 0) + 2,
+            title: conv.title || message.slice(0, 60),
+          }).eq("id", conversation_id);
         }
-        controller.close();
-
-        await admin.from("messages").insert({ conversation_id, role: "agent", content: fullText });
-        await admin.from("conversations").update({
-
-          last_message_at: new Date().toISOString(),
-          message_count: (conv.message_count || 0) + 2,
-          title: conv.title || message.slice(0, 60),
-        }).eq("id", conversation_id);
       },
     });
 
