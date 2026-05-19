@@ -154,11 +154,54 @@ Begin in character.`;
       { role: "user", content: message },
     ];
 
-    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: "google/gemini-3-flash-preview", messages: aiMessages, stream: true }),
-    });
+    // Provider strategy: Anthropic primary, Lovable AI Gateway fallback.
+    // Both branches must emit OpenAI-compatible SSE chunks so the existing client parser keeps working.
+    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+    const encoder = new TextEncoder();
+
+    async function callAnthropic(): Promise<Response | null> {
+      if (!ANTHROPIC_API_KEY) return null;
+      try {
+        const r = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "x-api-key": ANTHROPIC_API_KEY,
+            "anthropic-version": "2023-06-01",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "claude-haiku-4-5",
+            max_tokens: 1024,
+            system: systemPrompt,
+            stream: true,
+            messages: aiMessages.filter((m) => m.role !== "system"),
+          }),
+        });
+        if (!r.ok) {
+          console.error("anthropic error", r.status, await r.text().catch(() => ""));
+          return null;
+        }
+        return r;
+      } catch (e) {
+        console.error("anthropic fetch failed", e);
+        return null;
+      }
+    }
+
+    async function callLovable(): Promise<Response> {
+      return await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ model: "google/gemini-3-flash-preview", messages: aiMessages, stream: true }),
+      });
+    }
+
+    let provider: "anthropic" | "lovable" = "anthropic";
+    let aiRes: Response | null = await callAnthropic();
+    if (!aiRes) {
+      provider = "lovable";
+      aiRes = await callLovable();
+    }
 
     if (!aiRes.ok) {
       if (aiRes.status === 429) return json({ error: "rate_limit" }, 429, cors);
@@ -171,7 +214,7 @@ Begin in character.`;
     let fullText = "";
     const stream = new ReadableStream({
       async start(controller) {
-        const reader = aiRes.body!.getReader();
+        const reader = aiRes!.body!.getReader();
         const decoder = new TextDecoder();
         let buffer = "";
         while (true) {
@@ -185,19 +228,30 @@ Begin in character.`;
             if (line.endsWith("\r")) line = line.slice(0, -1);
             if (!line.startsWith("data: ")) continue;
             const data = line.slice(6).trim();
-            if (data === "[DONE]") continue;
+            if (!data || data === "[DONE]") continue;
             try {
               const parsed = JSON.parse(data);
+              if (provider === "anthropic") {
+                // Translate Anthropic events -> OpenAI-compatible chunk for the client.
+                if (parsed.type === "content_block_delta" && parsed.delta?.type === "text_delta") {
+                  const delta = parsed.delta.text as string;
+                  fullText += delta;
+                  const chunk = `data: ${JSON.stringify({ choices: [{ delta: { content: delta } }] })}\n`;
+                  controller.enqueue(encoder.encode(chunk));
+                }
+                continue;
+              }
               const delta = parsed.choices?.[0]?.delta?.content;
               if (delta) fullText += delta;
             } catch { /* ignore */ }
-            controller.enqueue(new TextEncoder().encode(line + "\n"));
+            if (provider === "lovable") controller.enqueue(encoder.encode(line + "\n"));
           }
         }
         controller.close();
 
         await admin.from("messages").insert({ conversation_id, role: "agent", content: fullText });
         await admin.from("conversations").update({
+
           last_message_at: new Date().toISOString(),
           message_count: (conv.message_count || 0) + 2,
           title: conv.title || message.slice(0, 60),
