@@ -1,0 +1,1 @@
+REVOKE SELECT (raw) ON public.rentcast_listings FROM anon, authenticated;
