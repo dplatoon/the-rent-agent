@@ -31,6 +31,10 @@ export function SiteHeader() {
           {authed && <Link to="/saved" className="hover:text-primary transition" activeProps={{ className: "text-primary" }}>Saved</Link>}
           {authed && <Link to="/imports" className="hover:text-primary transition" activeProps={{ className: "text-primary" }}>Imports</Link>}
           <Link to="/pricing" className="hover:text-primary transition" activeProps={{ className: "text-primary" }}>Pricing</Link>
+          <Link to="/pricing" className="hover:text-primary transition inline-flex items-center gap-1.5">
+            Demo
+            <span className="font-mono text-[9px] tracking-wider px-1.5 py-0.5 rounded bg-primary/15 text-primary">PREVIEW</span>
+          </Link>
           <Link to="/about" className="hover:text-primary transition" activeProps={{ className: "text-primary" }}>About</Link>
         </nav>
         <div className="flex items-center gap-2">
