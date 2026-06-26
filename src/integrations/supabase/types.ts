@@ -283,6 +283,9 @@ export type Database = {
           id: string
           pet_friendly: boolean | null
           preferred_state: string | null
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          subscription_status: string | null
           tier: string
           updated_at: string
         }
@@ -301,6 +304,9 @@ export type Database = {
           id: string
           pet_friendly?: boolean | null
           preferred_state?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string | null
           tier?: string
           updated_at?: string
         }
@@ -319,6 +325,9 @@ export type Database = {
           id?: string
           pet_friendly?: boolean | null
           preferred_state?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string | null
           tier?: string
           updated_at?: string
         }

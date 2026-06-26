@@ -3,3 +3,10 @@ project_id = "trakpcquqrdiubnglxdi"
 [functions.agent-chat]
 verify_jwt = false
 
+# create-checkout enforces its own auth (reads the user's bearer token).
+[functions.create-checkout]
+verify_jwt = false
+
+# stripe-webhook is authenticated by the Stripe signature, not a Supabase JWT.
+[functions.stripe-webhook]
+verify_jwt = false
