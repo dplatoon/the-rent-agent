@@ -1,0 +1,1 @@
+REVOKE UPDATE (stripe_customer_id, stripe_subscription_id, subscription_status) ON public.profiles FROM anon, authenticated;

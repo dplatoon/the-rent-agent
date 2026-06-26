@@ -35,7 +35,6 @@ function Pricing() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        // Not signed in — send them to auth first, then they can pick a plan.
         toast.info("Please sign in to upgrade.");
         navigate({ to: "/auth" });
         return;
@@ -48,15 +47,16 @@ function Pricing() {
           Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({ tier: plan }),
-      });
-      const data = await resp.json().catch(() => ({}));
-      if (!resp.ok || !data.url) {
-        toast.error(data.error === "forbidden" ? "Checkout unavailable from this origin." : "Could not start checkout. Try again.");
+      }).catch(() => null);
+      const data = resp ? await resp.json().catch(() => ({})) : {};
+      if (!resp || !resp.ok || !data?.url) {
+        // Stripe not connected yet — demo mode.
+        toast.info("Stripe checkout coming soon — this is a demo preview of the plans.");
         return;
       }
-      window.location.href = data.url; // hosted Stripe Checkout
-    } catch (e: any) {
-      toast.error(e?.message || "Network error");
+      window.location.href = data.url;
+    } catch {
+      toast.info("Stripe checkout coming soon — this is a demo preview of the plans.");
     } finally {
       setLoading(null);
     }
@@ -67,6 +67,10 @@ function Pricing() {
       <div className="text-center mb-12">
         <div className="font-mono text-[10px] tracking-[0.25em] text-primary mb-2">// PRICING</div>
         <h1 className="text-4xl md:text-5xl font-bold">Simple plans. Real value.</h1>
+      </div>
+      <div className="mb-10 mx-auto max-w-2xl rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 text-center text-sm">
+        <span className="font-mono text-[10px] tracking-wider text-primary mr-2">DEMO MODE</span>
+        Checkout is a preview right now. Stripe will be connected shortly — the Pro and Premium buttons won't charge yet.
       </div>
       <div className="grid md:grid-cols-3 gap-6">
         {tiers.map((t) => (
